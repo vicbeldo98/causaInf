@@ -2812,6 +2812,24 @@ var GraphParser = {
 		For the time being, edge statements are assumed to come line 
 		by line.
 	*/
+
+	parseGMLGraph : function(vertices, edges){
+		var graph = '"""graph[directed 1';
+		var vertex;
+		var edge;
+		for (vertex in vertices['kv']) {
+			graph = graph + ' node[id "' + vertex + '" label "' + vertex + '"]';
+		}
+		for(edge = 0; edge< edges.length; edge++){
+			source = edges[edge]['v1']['id'];
+			destination = edges[edge]['v2']['id'];
+			graph = graph + ' edge[source "' + source + '" target "' + destination + '"]';
+		}
+
+		graph = graph + '"""';
+
+		return graph;
+	},
 	
 	parseDot : function( code ){
 		"use strict"
