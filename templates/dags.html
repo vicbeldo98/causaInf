@@ -26,14 +26,6 @@
     <link rel="stylesheet" type="text/css" href= "{{url_for('static',filename='styles/dags.css') }}"/>
     	<!-- IE 6 is no longer supported! -->
    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"> </script>
-   <script>
-      function computeCausalEffect(g) {
-         var GMLgraph = GraphParser.parseGMLGraph(g.vertices, g.edges);
-         $.ajax({url: '/compute-causal-effect', 
-                 type:'POST',
-                 data: {'graph': GMLgraph}});
-      }
-   </script>
 	<script type="text/javascript" src="{{url_for('static', filename='js/dagitty.js')}}"></script>
 	<script type="text/javascript" src="{{url_for('static', filename='js/example-dags.js')}}"></script>
 
@@ -432,7 +424,38 @@ E D
       }
       </script>
    </div>
-
+   <script>
+      function computeCausalEffect(g) {
+         var GMLgraph = GraphParser.parseGMLGraph(g.vertices, g.edges);
+         var treatment = []
+         var outcome = []
+         var adjusted = []
+         var unobserved = []
+         for (vertex in g.vertices['kv']) {
+            if(g.isSource(vertex)){
+               treatment.push(vertex);
+            }
+            if(g.isTarget(vertex)){
+               outcome.push(vertex);
+            }
+            if(g.isAdjustedNode(vertex)){
+               adjusted.push(vertex);
+            }
+            if(g.isLatentNode(vertex)){
+               unobserved.push(vertex);
+            }
+		   }
+         
+         $.ajax({url: '/compute-causal-effect', 
+                 type:'POST',
+                 data: {'graph': GMLgraph,
+                        'treatment': treatment.toString(),
+                        'outcome': outcome.toString(),
+                        'adjusted': adjusted.toString(),
+                        'unobserved': unobserved.toString()
+                     }});
+      }
+   </script>
    <h3 onclick="displayToggle('compute')"><img src="{{url_for('static', filename='images/arrow-down.png')}}" alt="" id="a_compute"> Compute causal effect</h3>
    <div id="compute" style="display:block">
       <button type="button" id="compute_causal_effect" onclick="computeCausalEffect(Model.dag);">Compute</button>
