@@ -39,7 +39,7 @@ def compute_causal_effect(csv_content, graph, treatment, outcome, adjusted, unob
         if backdoor_dict[key] == adjusted.split(','):
             identified_name = key
 
-    # TODO: QUÉ HACER CUANDO ESTO PETA, ARREGLARLO
+    # TODO: GESTIONAR ERROR QUÉ HACER CUANDO ESTO PETA, ARREGLARLO
     assert(identified_name is not None)
 
     print('\n ESTIMATING')
