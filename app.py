@@ -18,10 +18,8 @@ def main_page():
 
 @app.route('/compute-causal-effect', methods=['POST'])
 def compute():
-    compute_causal_effect(session['csv_content'], request.form['graph'], request.form['treatment'], request.form['outcome'], request.form['adjusted'], request.form['unobserved'])
-    print('In ComputeCausalEffect')
-    print(session)
-    return '', 200
+    causal_effect = compute_causal_effect(session['csv_content'], request.form['graph'], request.form['treatment'], request.form['outcome'], request.form['adjusted'], request.form['unobserved'])
+    return 'The causal effect of ' + request.form['treatment'] + ' on ' + request.form['outcome'] +' is ' + str(causal_effect)
 
 
 @app.route('/upload-csv', methods=['POST'])

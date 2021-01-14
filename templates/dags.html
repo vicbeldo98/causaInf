@@ -38,6 +38,8 @@
 	<script type="text/javascript" src="https://www.google.com/recaptcha/api.js?render=explicit" 
 		async defer></script>
 
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 	<script type="text/javascript">
@@ -453,7 +455,33 @@ E D
                         'outcome': outcome.toString(),
                         'adjusted': adjusted.toString(),
                         'unobserved': unobserved.toString()
-                     }});
+                     },
+                  success: function(response){
+                     Swal.fire({
+                        title: '<strong>Computed Causal Effect</strong>',
+                        icon: 'info',
+                        html:
+                           response,
+                        showCloseButton: false,
+                        showCancelButton: false,
+                        focusConfirm: false,
+                        confirmButtonText:'<i class="fa fa-thumbs-up" aria-hidden="true"></i> OK',
+                        })
+                  },
+                  error: function(response){
+                     /* TODO : SHOW THE ERROR MESSAGE INSTEAD OF A GENERIC ONE */
+                     Swal.fire({
+                        title: '<strong>Something wrong</strong>',
+                        icon: 'error',
+                        html:
+                           '<p>Please, make sure the names of the nodes are correct, that a csv file has been chosen and that csv colums are named the same as the nodes in the graph.',
+                        showCloseButton: false,
+                        showCancelButton: false,
+                        focusConfirm: false,
+                        confirmButtonText:'<i class="fa fa-thumbs-down" aria-hidden="true"></i> OK',
+                        })
+                  }
+               });
       }
    </script>
    <h3 onclick="displayToggle('compute')"><img src="{{url_for('static', filename='images/arrow-down.png')}}" alt="" id="a_compute"> Compute causal effect</h3>
