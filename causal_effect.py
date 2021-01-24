@@ -1,16 +1,9 @@
-from __future__ import division
 import pandas as pd
-from dowhy import CausalModel
+from dowhy.causal_model import CausalModel
 from io import StringIO
-
-
-def truncate(f, n):
-    '''Truncates/pads a float f to n decimal places without rounding'''
-    s = '{}'.format(f)
-    if 'e' in s or 'E' in s:
-        return '{0:.{1}f}'.format(f, n)
-    i, p, d = s.partition('.')
-    return '.'.join([i, (d+'0'*n)[:n]])
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LassoCV
+from sklearn.ensemble import GradientBoostingRegressor, forest
 
 
 def load_csv(csv_content):
@@ -19,7 +12,21 @@ def load_csv(csv_content):
     return dataframe
 
 
-def compute_causal_effect(csv_content, graph, treatment, outcome, adjusted, unobserved):
+def compute_estimands(csv_content, graph, treatment, outcome):
+    data = load_csv(csv_content)
+    model = CausalModel(
+        data=data,
+        treatment=treatment.split(','),
+        outcome=outcome.split(','),
+        graph=graph,
+        proceed_when_unidentifiable=True
+    )
+
+    identified_estimand = model.identify_effect()
+    return identified_estimand.estimands.items()
+
+
+def compute_causal_effect(csv_content, graph, treatment, outcome, adjusted):
     data = load_csv(csv_content)
     model = CausalModel(
         data=data,
@@ -28,24 +35,44 @@ def compute_causal_effect(csv_content, graph, treatment, outcome, adjusted, unob
         graph=graph,
         proceed_when_unidentifiable=True)
 
-    
-    # TODO: COMO TRATAR LOS NODOS NO OBSERVADOS
     # Identify causal effect and return target estimands
-    print('\nIDENTIFYING ESTIMAND\n')
+    print('\ESTIMAND\n')
     identified_estimand = model.identify_effect()
+    print(identified_estimand)
+
+    # Check which estimand is the one fitting the user
+    '''estimand_name = None
+    print(adjusted)
+    # Backdoor
     backdoor_dict = identified_estimand.backdoor_variables
-    identified_name = None
     for key in backdoor_dict.keys():
         if backdoor_dict[key] == adjusted.split(','):
-            identified_name = key
+            estimand_name = key
+
+    # Frontdoor
+    frontdoor_dict = identified_estimand.get_frontdoor_variables()
+    print('FRONTDOOR DICT')
+    print(frontdoor_dict)
+
+    # IV
+    print('iv')
+    print(identified_estimand.get_instrumental_variables())
 
     # TODO: GESTIONAR ERROR QUÉ HACER CUANDO ESTO PETA, ARREGLARLO
-    assert(identified_name is not None)
+    # assert(estimand_name is not None)
 
     print('\n ESTIMATING')
-    estimate = model.estimate_effect(identified_estimand, method_name=identified_name + ".linear_regression", test_significance=True)
-    return round(estimate.value , 3)
-    '''refute_result = model.refute_estimate(identified_estimand, estimate, method_name="random_common_cause")
-    print('\n REFUTING RESULTS')
-
-    print(refute_result)'''
+    dml_estimate = model.estimate_effect(identified_estimand,
+                                         method_name="backdoor2.econml.dml.DML",
+                                         control_value=0,
+                                         treatment_value=1,
+                                         target_units="ate",
+                                         confidence_intervals=False,
+                                         method_params={"init_params": {'model_y': GradientBoostingRegressor(),
+                                                                        'model_t': GradientBoostingRegressor(),
+                                                                        "model_final": LassoCV(fit_intercept=False),
+                                                                        'featurizer': PolynomialFeatures(degree=1, include_bias=False)},
+                                                        "fit_params": {}}
+                                         )
+    return round(dml_estimate.value, 3)'''
+    return 10

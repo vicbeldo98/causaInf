@@ -232,10 +232,10 @@ E D
          	<label for="variable_outcome">outcome</label></p>
       <p><input type="checkbox" checked="checked" id="variable_adjusted"
          onclick="GUI.set_variable_status('adjustedNode',this.checked)" />
-         	<label for="variable_adjusted">adjusted</label></p>
-      <p><input type="checkbox" checked="checked" id="variable_unobserved"
-         onclick="GUI.set_variable_status('latentNode',this.checked)" />
-         	<label for="variable_unobserved">unobserved</label></p>
+            <label for="variable_adjusted">adjusted</label></p>
+      <p><input type="checkbox" disabled=true checked="checked" id="variable_unobserved"
+         onclick="GUI.set_variable_status('latentNode',this.checked)"/>
+            <label for="variable_unobserved">unobserved</label></p>
 
 	<input type="hidden" id="variable_id" value="">
 
@@ -306,7 +306,7 @@ E D
          <p><input type="checkbox" checked="checked" id="highlight_ancestral"
             onclick="gui.set_highlight_ancestors(this.checked)"/>
                <label for="highlight_ancestral">ancestral structure</label></p>
-         </form>
+      </form>
    </div>
 
 
@@ -427,12 +427,11 @@ E D
       </script>
    </div>
    <script>
-      function computeCausalEffect(g) {
+      function computeCausalEffect(g, isAutomatic) {
          var GMLgraph = GraphParser.parseGMLGraph(g.vertices, g.edges);
          var treatment = []
          var outcome = []
          var adjusted = []
-         var unobserved = []
          for (vertex in g.vertices['kv']) {
             if(g.isSource(vertex)){
                treatment.push(vertex);
@@ -443,50 +442,89 @@ E D
             if(g.isAdjustedNode(vertex)){
                adjusted.push(vertex);
             }
-            if(g.isLatentNode(vertex)){
-               unobserved.push(vertex);
-            }
-		   }
-         
-         $.ajax({url: '/compute-causal-effect', 
-                 type:'POST',
-                 data: {'graph': GMLgraph,
-                        'treatment': treatment.toString(),
-                        'outcome': outcome.toString(),
-                        'adjusted': adjusted.toString(),
-                        'unobserved': unobserved.toString()
-                     },
+         }
+         if(isAutomatic){
+            printEstimands(GMLgraph, treatment, outcome);
+         }
+         else{
+            showCausalEffect(GMLgraph, treatment, outcome, adjusted);
+         }
+      }
+      
+      function printEstimands(g, treatment, outcome){
+         $.ajax({url: '/print-estimands', 
+               type:'POST',
+               data: {
+                  'graph': g,
+                  'treatment': treatment.toString(),
+                  'outcome': outcome.toString(),
+               },
                   success: function(response){
+                     for(estimand in json.load(response.keys())){
+                        console.log(estimand);
+                     }
                      Swal.fire({
-                        title: '<strong>Computed Causal Effect</strong>',
-                        icon: 'info',
-                        html:
-                           response,
-                        showCloseButton: false,
-                        showCancelButton: false,
-                        focusConfirm: false,
-                        confirmButtonText:'<i class="fa fa-thumbs-up" aria-hidden="true"></i> OK',
-                        })
+                     title: '<strong>Identified estimands</strong>',
+                     icon: 'question',
+                     html:
+                     '<p><input type="checkbox" />' +
+                     '<label for="variable_exposure">exposure</label></p>' + 
+                     '<p><input type="checkbox" />' + 
+                     '<label for="variable_outcome">outcome</label></p>' +
+                     '<p><input type="checkbox" />' +
+                     '<label for="variable_adjusted">adjusted</label></p>',
+                     showCloseButton: false,
+                     showCancelButton: false,
+                     focusConfirm: false,
+                     })
                   },
                   error: function(response){
-                     /* TODO : SHOW THE ERROR MESSAGE INSTEAD OF A GENERIC ONE */
-                     Swal.fire({
-                        title: '<strong>Something wrong</strong>',
-                        icon: 'error',
-                        html:
-                           '<p>Please, make sure the names of the nodes are correct, that a csv file has been chosen and that csv colums are named the same as the nodes in the graph.',
-                        showCloseButton: false,
-                        showCancelButton: false,
-                        focusConfirm: false,
-                        confirmButtonText:'<i class="fa fa-thumbs-down" aria-hidden="true"></i> OK',
-                        })
+
                   }
-               });
+         });
+      }
+
+      function showCausalEffect(g, treatment, outcome, adjusted){
+         $.ajax({url: '/compute-causal-effect', 
+            type:'POST',
+            data: {
+                     'graph': g,
+                     'treatment': treatment.toString(),
+                     'outcome': outcome.toString(),
+                     'adjusted': adjusted.toString(),
+                  },
+               success: function(response){
+                  Swal.fire({
+                     title: '<strong>Computed Causal Effect</strong>',
+                     icon: 'info',
+                     html:
+                        response,
+                     showCloseButton: false,
+                     showCancelButton: false,
+                     focusConfirm: false,
+                     confirmButtonText:'<i class="fa fa-thumbs-up" aria-hidden="true"></i> OK',
+                     })
+               },
+               error: function(response){
+                  /* TODO : SHOW THE ERROR MESSAGE INSTEAD OF A GENERIC ONE */
+                  Swal.fire({
+                     title: '<strong>Something wrong</strong>',
+                     icon: 'error',
+                     html:
+                        '<p>Please, make sure the names of the nodes are correct, that a csv file has been chosen and that csv colums are named the same as the nodes in the graph.',
+                     showCloseButton: false,
+                     showCancelButton: false,
+                     focusConfirm: false,
+                     confirmButtonText:'<i class="fa fa-thumbs-down" aria-hidden="true"></i> OK',
+                  })
+               }
+         });
       }
    </script>
    <h3 onclick="displayToggle('compute')"><img src="{{url_for('static', filename='images/arrow-down.png')}}" alt="" id="a_compute"> Compute causal effect</h3>
    <div id="compute" style="display:block">
-      <button type="button" id="compute_causal_effect" onclick="computeCausalEffect(Model.dag);">Compute</button>
+      <button type="button" id="compute_causal_effect_manually" onclick="computeCausalEffect(Model.dag, false);">Compute manually</button>
+      <button type="button" id="compute_causal_effect_automatically" onclick="computeCausalEffect(Model.dag, true);">Compute automatically</button>
    </div>
 
 </div>
