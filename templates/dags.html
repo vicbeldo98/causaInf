@@ -416,8 +416,6 @@ E D
          console.log(input.files[0])
          fReader.readAsText(input.files[0]);
          fReader.onloadend = function(event){
-            console.log('Estoy aquí');
-            console.log(event);
             $.ajax({
                url: '/upload-csv', 
                type:'POST',
@@ -460,19 +458,24 @@ E D
                   'outcome': outcome.toString(),
                },
                   success: function(response){
-                     for(estimand in json.load(response.keys())){
-                        console.log(estimand);
+                     var prompt = '<p><b>Please, choose the method and the variables you would wish to use</b></p>';
+                     var estimands_dict = JSON.parse(response);
+                     for(var k in estimands_dict){
+                        var related_variables;
+                        console.log(estimands_dict[k]['related_variables']);
+                        if(estimands_dict[k]['related_variables'].length == 0){
+                           related_variables = 'no variable'
+                        }else{
+                           related_variables = estimands_dict[k]['related_variables']
+                        }
+                        prompt = prompt + '<p><input type="radio" name="estimand" value="'+ k + '"/>' + k + ':' + related_variables;
                      }
+                     console.log('prompt', prompt);
                      Swal.fire({
                      title: '<strong>Identified estimands</strong>',
                      icon: 'question',
                      html:
-                     '<p><input type="checkbox" />' +
-                     '<label for="variable_exposure">exposure</label></p>' + 
-                     '<p><input type="checkbox" />' + 
-                     '<label for="variable_outcome">outcome</label></p>' +
-                     '<p><input type="checkbox" />' +
-                     '<label for="variable_adjusted">adjusted</label></p>',
+                        prompt,
                      showCloseButton: false,
                      showCancelButton: false,
                      focusConfirm: false,
@@ -523,8 +526,8 @@ E D
    </script>
    <h3 onclick="displayToggle('compute')"><img src="{{url_for('static', filename='images/arrow-down.png')}}" alt="" id="a_compute"> Compute causal effect</h3>
    <div id="compute" style="display:block">
-      <button type="button" id="compute_causal_effect_manually" onclick="computeCausalEffect(Model.dag, false);">Compute manually</button>
-      <button type="button" id="compute_causal_effect_automatically" onclick="computeCausalEffect(Model.dag, true);">Compute automatically</button>
+      <button type="button" id="compute_causal_effect_manually" onclick="computeCausalEffect(Model.dag, false);">Compute from graph</button>
+      <button type="button" id="compute_causal_effect_automatically" onclick="computeCausalEffect(Model.dag, true);">Compute with options</button>
    </div>
 
 </div>

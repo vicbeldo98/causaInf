@@ -3,7 +3,7 @@ from dowhy.causal_model import CausalModel
 from io import StringIO
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LassoCV
-from sklearn.ensemble import GradientBoostingRegressor, forest
+# from sklearn.ensemble import GradientBoostingRegressor, forest
 
 
 def load_csv(csv_content):
@@ -21,9 +21,21 @@ def compute_estimands(csv_content, graph, treatment, outcome):
         graph=graph,
         proceed_when_unidentifiable=True
     )
-
     identified_estimand = model.identify_effect()
-    return identified_estimand.estimands.items()
+    result = dict(identified_estimand.estimands.items())
+    backdoor_dict = identified_estimand.backdoor_variables
+    frontdoor_dict = identified_estimand.get_frontdoor_variables()
+    iv_estimands = identified_estimand.get_instrumental_variables()
+    if result['frontdoor'] is None:
+        print('IS NONE')
+        result["frontdoor"] = {'related_variables': frontdoor_dict}
+    else:
+        result['frontdoor']['related_variables'] = frontdoor_dict
+    if iv_estimands != []:
+        result['iv']['related_variables'] = iv_estimands
+    for b in backdoor_dict.keys():
+        result[b]['related_variables'] = backdoor_dict[b]
+    return result
 
 
 def compute_causal_effect(csv_content, graph, treatment, outcome, adjusted):

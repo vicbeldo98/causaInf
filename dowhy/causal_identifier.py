@@ -94,7 +94,6 @@ class CausalIdentifier:
         ### 3. FRONTDOOR IDENTIFICATION
         # Now checking if there is a valid frontdoor variable
         frontdoor_variables_names = self.identify_frontdoor()
-        print('ESTOY AQUÍ')
         print(frontdoor_variables_names)
         self.logger.info("Frontdoor variables for treatment and outcome:" + \
                 str(frontdoor_variables_names))
@@ -589,9 +588,6 @@ class IdentifiedEstimand:
         self.estimands = estimands
         self.default_backdoor_id = default_backdoor_id
         self.identifier_method = identifier_method
-        print('hola')
-        print(backdoor_variables)
-        print(frontdoor_variables)
 
     def set_identifier_method(self, identifier_name):
         self.identifier_method = identifier_name
