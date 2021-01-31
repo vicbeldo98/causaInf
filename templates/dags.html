@@ -460,29 +460,52 @@ E D
                   success: function(response){
                      var prompt = '<p><b>Please, choose the method and the variables you would wish to use</b></p>';
                      var estimands_dict = JSON.parse(response);
+                     var inputOptions = {};
                      for(var k in estimands_dict){
                         var related_variables;
-                        console.log(estimands_dict[k]['related_variables']);
                         if(estimands_dict[k]['related_variables'].length == 0){
                            related_variables = 'no variable'
                         }else{
                            related_variables = estimands_dict[k]['related_variables']
                         }
-                        prompt = prompt + '<p><input type="radio" name="estimand" value="'+ k + '"/>' + k + ':' + related_variables;
+                        inputOptions[k] =  k + ': ' + related_variables;
                      }
-                     console.log('prompt', prompt);
-                     Swal.fire({
-                     title: '<strong>Identified estimands</strong>',
-                     icon: 'question',
-                     html:
-                        prompt,
-                     showCloseButton: false,
-                     showCancelButton: false,
-                     focusConfirm: false,
-                     })
+                     (async () => {
+                        const {value: estimand } = await Swal.fire({
+                        title: '<strong>Identified estimands</strong>',
+                        icon: 'question',
+                        customClass: {input: 'my-radio'},
+                        input: 'radio',
+                        inputOptions: inputOptions,
+                        html: prompt,
+                        showCloseButton: true,
+                        showCancelButton: true,
+                        focusConfirm: true,
+                        });
+                        if(estimand){
+                           $.ajax({
+                              url: '/estimate-with-estimand', 
+                              type:'POST',
+                              data: {'estimand_name': estimand},
+                              success: function(response){
+                                 Swal.fire({
+                                    title: '<strong>Computed Causal Effect</strong>',
+                                    icon: 'info',
+                                    html:
+                                       response,
+                                    showCloseButton: false,
+                                    showCancelButton: false,
+                                    focusConfirm: false,
+                                    confirmButtonText:'<i class="fa fa-thumbs-up" aria-hidden="true"></i> OK',
+                                 })
+                              },
+                           });
+                        }else{
+                           console.log('NO SELECTED ESTIMAND');
+                        }
+                     })();
                   },
                   error: function(response){
-
                   }
          });
       }

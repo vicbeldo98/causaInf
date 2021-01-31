@@ -3,7 +3,7 @@ from dowhy.causal_model import CausalModel
 from io import StringIO
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LassoCV
-# from sklearn.ensemble import GradientBoostingRegressor, forest
+from sklearn.ensemble import GradientBoostingRegressor
 
 
 def load_csv(csv_content):
@@ -27,7 +27,6 @@ def compute_estimands(csv_content, graph, treatment, outcome):
     frontdoor_dict = identified_estimand.get_frontdoor_variables()
     iv_estimands = identified_estimand.get_instrumental_variables()
     if result['frontdoor'] is None:
-        print('IS NONE')
         result["frontdoor"] = {'related_variables': frontdoor_dict}
     else:
         result['frontdoor']['related_variables'] = frontdoor_dict
@@ -35,7 +34,7 @@ def compute_estimands(csv_content, graph, treatment, outcome):
         result['iv']['related_variables'] = iv_estimands
     for b in backdoor_dict.keys():
         result[b]['related_variables'] = backdoor_dict[b]
-    return result
+    return result,model, identified_estimand
 
 
 def compute_causal_effect(csv_content, graph, treatment, outcome, adjusted):
@@ -88,3 +87,20 @@ def compute_causal_effect(csv_content, graph, treatment, outcome, adjusted):
                                          )
     return round(dml_estimate.value, 3)'''
     return 10
+
+
+def estimate_effect_with_estimand(model, identified_estimand, estimand_name):
+    print('ESTIMATE WITH ESTIMAND')
+    dml_estimate = model.estimate_effect(identified_estimand,
+                                         method_name=estimand_name + ".econml.dml.DML",
+                                         control_value=0,
+                                         treatment_value=1,
+                                         target_units="ate",
+                                         confidence_intervals=False,
+                                         method_params={"init_params": {'model_y': GradientBoostingRegressor(),
+                                                                        'model_t': GradientBoostingRegressor(),
+                                                                        "model_final": LassoCV(fit_intercept=False),
+                                                                        'featurizer': PolynomialFeatures(degree=1, include_bias=False)},
+                                                        "fit_params": {}}
+                                         )
+    return round(dml_estimate.value, 3)

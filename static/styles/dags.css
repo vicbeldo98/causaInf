@@ -198,4 +198,10 @@ form{
 	}
 }
 
+.my-radio {
+   display: inline-flex !important;
+   flex-direction: column;
+   align-items: flex-start !important;
+}
+
 
