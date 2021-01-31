@@ -478,8 +478,8 @@ E D
                         input: 'radio',
                         inputOptions: inputOptions,
                         html: prompt,
-                        showCloseButton: true,
-                        showCancelButton: true,
+                        showCloseButton: false,
+                        showCancelButton: false,
                         focusConfirm: true,
                         });
                         if(estimand){
@@ -500,24 +500,35 @@ E D
                                  })
                               },
                            });
-                        }else{
-                           console.log('NO SELECTED ESTIMAND');
                         }
-                     })();
-                  },
-                  error: function(response){
-                  }
-         });
+                        else{
+                           Swal.fire({
+                                    title: '<strong>No selected estimand</strong>',
+                                    icon: 'error',
+                                    html:
+                                       '<p>No selected estimand found. Please, try again</p>',
+                                    showCloseButton: false,
+                                    showCancelButton: false,
+                                    focusConfirm: false,
+                                    confirmButtonText:'<i class="fa fa-thumbs-up" aria-hidden="true"></i> OK',
+                           });
+                           }
+                        })();
+                     },
+                     error: function(response){
+                     }
+               });
       }
 
       function showCausalEffect(g, treatment, outcome, adjusted){
+         console.log('adjusted',  JSON.stringify(adjusted));
          $.ajax({url: '/compute-causal-effect', 
             type:'POST',
             data: {
                      'graph': g,
                      'treatment': treatment.toString(),
                      'outcome': outcome.toString(),
-                     'adjusted': adjusted.toString(),
+                     'adjusted': JSON.stringify(adjusted),
                   },
                success: function(response){
                   Swal.fire({
