@@ -33,7 +33,8 @@
     <script type="text/javascript" src="{{url_for('static', filename='js/styles/original.js')}}"></script>
 
    <script type="text/javascript" src="{{url_for('static', filename='js/main.js')}}"></script>
-	<script type="text/javascript" src="{{url_for('static', filename='js/base64.js')}}"></script>
+   <script type="text/javascript" src="{{url_for('static', filename='js/base64.js')}}"></script>
+   <script type="text/javascript" src="{{url_for('static', filename='js/causal-effect-prompt.js')}}"></script>
 	
 	<script type="text/javascript" src="https://www.google.com/recaptcha/api.js?render=explicit" 
 		async defer></script>
@@ -441,6 +442,7 @@ E D
                adjusted.push(vertex);
             }
          }
+
          if(isAutomatic){
             printEstimands(GMLgraph, treatment, outcome);
          }
@@ -450,7 +452,7 @@ E D
       }
       
       function printEstimands(g, treatment, outcome){
-         $.ajax({url: '/print-estimands', 
+         $.ajax({url: '/retrieve-estimands', 
                type:'POST',
                data: {
                   'graph': g,
@@ -484,20 +486,11 @@ E D
                         });
                         if(estimand){
                            $.ajax({
-                              url: '/estimate-with-estimand', 
+                              url: '/compute-effect-with-estimand', 
                               type:'POST',
                               data: {'estimand_name': estimand},
                               success: function(response){
-                                 Swal.fire({
-                                    title: '<strong>Computed Causal Effect</strong>',
-                                    icon: 'info',
-                                    html:
-                                       response,
-                                    showCloseButton: false,
-                                    showCancelButton: false,
-                                    focusConfirm: false,
-                                    confirmButtonText:'<i class="fa fa-thumbs-up" aria-hidden="true"></i> OK',
-                                 })
+                                 causalEffectPrompt(response['treatment'],response['outcome'],response['effect']);
                               },
                            });
                         }
@@ -521,8 +514,7 @@ E D
       }
 
       function showCausalEffect(g, treatment, outcome, adjusted){
-         console.log('adjusted',  JSON.stringify(adjusted));
-         $.ajax({url: '/compute-causal-effect', 
+         $.ajax({url: '/compute-effect-from-graph', 
             type:'POST',
             data: {
                      'graph': g,
@@ -531,16 +523,7 @@ E D
                      'adjusted': JSON.stringify(adjusted),
                   },
                success: function(response){
-                  Swal.fire({
-                     title: '<strong>Computed Causal Effect</strong>',
-                     icon: 'info',
-                     html:
-                        response,
-                     showCloseButton: false,
-                     showCancelButton: false,
-                     focusConfirm: false,
-                     confirmButtonText:'<i class="fa fa-thumbs-up" aria-hidden="true"></i> OK',
-                     })
+                  causalEffectPrompt(response['treatment'],response['outcome'],response['effect']);
                },
                error: function(response){
                   /* TODO : SHOW THE ERROR MESSAGE INSTEAD OF A GENERIC ONE */
