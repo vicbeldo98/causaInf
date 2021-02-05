@@ -25,6 +25,24 @@ class Econml(CausalEstimator):
             self.logger.warn("Effect modifiers are not a subset of common causes. For efficiency in estimation, EconML will consider all effect modifiers as common causes too.")
             self._observed_common_causes_names.extend(unique_effect_modifier_names)
 
+        # For metalearners only--issue a warning if w contains variables not in x
+        (module_name, _, class_name) = self._econml_methodname.rpartition(".")
+        if module_name.endswith("metalearners"):
+            effect_modifier_names = []
+            if self._effect_modifier_names is not None:
+                effect_modifier_names = self._effect_modifier_names.copy()
+            w_diff_x = [w for w in self._observed_common_causes_names if w not in effect_modifier_names]
+            if len(w_diff_x) >0:
+                self.logger.warn("Concatenating common_causes and effect_modifiers and providing a single list of variables to metalearner estimator method, " + class_name + ". EconML metalearners accept a single X argument.")
+                effect_modifier_names.extend(w_diff_x)
+                # Override the effect_modifiers set in CausalEstimator.__init__()
+                # Also only update self._effect_modifiers, and create a copy of self._effect_modifier_names
+                # the latter can be used by other estimator methods later
+                self._effect_modifiers = self._data[effect_modifier_names]
+                self._effect_modifiers = pd.get_dummies(self._effect_modifiers, drop_first=True)
+                self._effect_modifier_names = effect_modifier_names
+            self.logger.debug("Effect modifiers: " +
+                          ",".join(effect_modifier_names))
         if self._observed_common_causes_names:
             self._observed_common_causes = self._data[self._observed_common_causes_names]
             self._observed_common_causes = pd.get_dummies(self._observed_common_causes, drop_first=True)
@@ -64,7 +82,7 @@ class Econml(CausalEstimator):
         Z = None  # Instruments
         Y = np.array(self._outcome)
         T = np.array(self._treatment)
-        if self._effect_modifier_names:
+        if self._effect_modifiers is not None:
             X = np.reshape(np.array(self._effect_modifiers), (n_samples, self._effect_modifiers.shape[1]))
         if self._observed_common_causes_names:
             W = np.reshape(np.array(self._observed_common_causes), (n_samples, self._observed_common_causes.shape[1]))
@@ -102,16 +120,23 @@ class Econml(CausalEstimator):
         est = self.estimator.effect(X_test, T0=T0_test, T1=T1_test)
         ate = np.mean(est)
 
-        est_interval = None
+        self.effect_intervals = None
         if self._confidence_intervals:
-            est_interval = self.estimator.effect_interval(X_test, T0=T0_test, T1=T1_test)
+            self.effect_intervals = self.estimator.effect_interval(
+                    X_test, T0=T0_test, T1=T1_test,
+                    alpha=1-self.confidence_level)
         estimate = CausalEstimate(estimate=ate,
                                   target_estimand=self._target_estimand,
                                   realized_estimand_expr=self.symbolic_estimator,
                                   cate_estimates=est,
-                                  effect_intervals=est_interval,
+                                  effect_intervals=self.effect_intervals,
                                   _estimator_object=self.estimator)
         return estimate
+
+    def _estimate_confidence_intervals(self, confidence_level=None, method=None):
+        """ Returns None if the confidence interval has not been calculated.
+        """
+        return self.effect_intervals
 
     def _do(self, x):
         raise NotImplementedError
@@ -119,7 +144,12 @@ class Econml(CausalEstimator):
     def construct_symbolic_estimator(self, estimand):
         expr = "b: " + ", ".join(estimand.outcome_variable) + "~"
         # TODO -- fix: we are actually conditioning on positive treatment (d=1)
-        var_list = estimand.treatment_variable + self._observed_common_causes_names
-        expr += "+".join(var_list)
-        expr += " | " + ",".join(self._effect_modifier_names)
+        (module_name, _, class_name) = self._econml_methodname.rpartition(".")
+        if module_name.endswith("metalearners"):
+            var_list = estimand.treatment_variable + self._effect_modifier_names
+            expr += "+".join(var_list)
+        else:
+            var_list = estimand.treatment_variable + self._observed_common_causes_names
+            expr += "+".join(var_list)
+            expr += " | " + ",".join(self._effect_modifier_names)
         return expr
