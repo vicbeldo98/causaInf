@@ -1,11 +1,10 @@
 from flask import Flask, request, render_template, session
 from flask_session import Session
-from causal_effect import compute_causal_effect, compute_estimands, estimate_effect_with_estimand
+from causal_effect import estimate_effect_with_estimand, estimate_with_variables, compute_estimands
 import json
 
 
 app = Flask(__name__)
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config.from_object(__name__)
 app.secret_key = 'i-want-to-do-causal-inference'
@@ -19,8 +18,7 @@ def main_page():
 
 @app.route('/compute-effect-from-graph', methods=['POST'])
 def compute_effect_from_graph():
-    print(request.form['adjusted'])
-    causal_effect = compute_causal_effect(session['csv_content'], request.form['graph'], request.form['treatment'], request.form['outcome'], request.form['adjusted'])
+    causal_effect = estimate_with_variables(session['csv_content'], request.form['graph'], request.form['treatment'], request.form['outcome'], request.form['adjusted'])
     return {'treatment' : request.form['treatment'], 'outcome' : request.form['outcome'], 'effect' : causal_effect}
 
 
@@ -45,4 +43,4 @@ def upload_csv():
     return '', 200
 
 
-app.run(debug=True)
+app.run(debug=False)
