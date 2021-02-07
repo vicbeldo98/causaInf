@@ -465,8 +465,10 @@ E D
                      var estimands_dict = JSON.parse(response);
                      var inputOptions = {};
                      for(var k in estimands_dict){
+                        console.log(k);
+                        console.log(estimands_dict[k]);
                         var related_variables;
-                        if(estimands_dict[k]['related_variables'].length == 0){
+                        if('related_variables' in estimands_dict[k] && estimands_dict[k]['related_variables'].length == 0){
                            related_variables = 'no variable'
                         }else{
                            related_variables = estimands_dict[k]['related_variables']

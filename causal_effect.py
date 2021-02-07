@@ -45,7 +45,9 @@ def compute_estimands(csv_content, graph, treatment, outcome):
         del result['frontdoor']
     else:
         result['frontdoor']['related_variables'] = frontdoor_dict
-    if iv_estimands != []:
+    if iv_estimands == []:
+        del result['iv']
+    else:
         result['iv']['related_variables'] = iv_estimands
     for b in backdoor_dict.keys():
         result[b]['related_variables'] = backdoor_dict[b]
