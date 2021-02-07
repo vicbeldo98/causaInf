@@ -11,7 +11,6 @@ import dowhy.utils.cli_helpers as cli
 from dowhy.causal_estimator import CausalEstimate
 from dowhy.causal_graph import CausalGraph
 from dowhy.causal_identifier import CausalIdentifier
-
 from dowhy.utils.api import parse_state
 
 init_printing()  # To display symbolic math symbols
@@ -127,7 +126,8 @@ class CausalModel:
         self._other_variables = kwargs
         self.summary()
 
-    def identify_effect(self, estimand_type=None, proceed_when_unidentifiable=None):
+    def identify_effect(self, estimand_type=None,
+            method_name="default", proceed_when_unidentifiable=None):
         """Identify the causal effect to be estimated, using properties of the causal graph.
 
         :param proceed_when_unidentifiable: Binary flag indicating whether identification should proceed in the presence of (potential) unobserved confounders.
@@ -141,6 +141,7 @@ class CausalModel:
 
         self.identifier = CausalIdentifier(self._graph,
                                            estimand_type,
+                                           method_name,
                                            proceed_when_unidentifiable=proceed_when_unidentifiable)
         identified_estimand = self.identifier.identify_effect()
 
@@ -211,7 +212,7 @@ class CausalModel:
                     # Define the third-party estimation method to be used
                     method_params["_" + third_party_estimator_package + "_methodname"] = estimator_name
             else: # For older dowhy methods
-                # Process the dowhy estimators 
+                # Process the dowhy estimators
                 causal_estimator_class = causal_estimators.get_class_object(estimator_name + "_estimator")
 
         # Check if estimator's target estimand is identified
@@ -301,7 +302,7 @@ class CausalModel:
         :param estimand: target estimand, an instance of the IdentifiedEstimand class (typically, the output of identify_effect)
         :param estimate: estimate to be refuted, an instance of the CausalEstimate class (typically, the output of estimate_effect)
         :param method_name: name of the refutation method
-        :param **kwargs:  (optional) additional arguments that are passed directly to the refutation method. Can specify a random seed here to ensure reproducible results ('random_seed' parameter). For method-specific parameters, consult the documentation for the specific method. All refutation methods are in the causal_refuters subpackage.
+        :param kwargs:  (optional) additional arguments that are passed directly to the refutation method. Can specify a random seed here to ensure reproducible results ('random_seed' parameter). For method-specific parameters, consult the documentation for the specific method. All refutation methods are in the causal_refuters subpackage.
 
         :returns: an instance of the RefuteResult class
 
@@ -333,7 +334,7 @@ class CausalModel:
     def interpret(self, method_name=None, **kwargs):
         """Interpret the causal model.
 
-        :param method_name: method used for interpreting the model. If None, 
+        :param method_name: method used for interpreting the model. If None,
                             then default interpreter is chosen that describes the model summary and shows the associated causal graph.
         :param kwargs:: Optional parameters that are directly passed to the interpreter method.
 
@@ -346,6 +347,7 @@ class CausalModel:
             return
 
         method_name_arr = parse_state(method_name)
+        import dowhy.interpreters as interpreters
         for method in method_name_arr:
             interpreter = interpreters.get_class_object(method)
             interpreter(self, **kwargs).interpret()
@@ -362,4 +364,4 @@ class CausalModel:
             print(summary_text)
         return summary_text
 
-               
+

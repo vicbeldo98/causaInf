@@ -33,7 +33,10 @@
     <script type="text/javascript" src="{{url_for('static', filename='js/styles/original.js')}}"></script>
 
    <script type="text/javascript" src="{{url_for('static', filename='js/main.js')}}"></script>
-	<script type="text/javascript" src="{{url_for('static', filename='js/base64.js')}}"></script>
+   <script type="text/javascript" src="{{url_for('static', filename='js/base64.js')}}"></script>
+   <script type="text/javascript" src="{{url_for('static', filename='js/causal-effect-prompt.js')}}"></script>
+   <script type="text/javascript" src="{{url_for('static', filename='js/error-prompt.js')}}"></script>
+
 	
 	<script type="text/javascript" src="https://www.google.com/recaptcha/api.js?render=explicit" 
 		async defer></script>
@@ -413,7 +416,6 @@ E D
          function uploadCSV(){
          var input = document.getElementById("upload_csv");
          var fReader = new FileReader();
-         console.log(input.files[0])
          fReader.readAsText(input.files[0]);
          fReader.onloadend = function(event){
             $.ajax({
@@ -441,6 +443,7 @@ E D
                adjusted.push(vertex);
             }
          }
+
          if(isAutomatic){
             printEstimands(GMLgraph, treatment, outcome);
          }
@@ -450,7 +453,7 @@ E D
       }
       
       function printEstimands(g, treatment, outcome){
-         $.ajax({url: '/print-estimands', 
+         $.ajax({url: '/retrieve-estimands', 
                type:'POST',
                data: {
                   'graph': g,
@@ -484,45 +487,31 @@ E D
                         });
                         if(estimand){
                            $.ajax({
-                              url: '/estimate-with-estimand', 
+                              url: '/compute-effect-with-estimand', 
                               type:'POST',
                               data: {'estimand_name': estimand},
                               success: function(response){
-                                 Swal.fire({
-                                    title: '<strong>Computed Causal Effect</strong>',
-                                    icon: 'info',
-                                    html:
-                                       response,
-                                    showCloseButton: false,
-                                    showCancelButton: false,
-                                    focusConfirm: false,
-                                    confirmButtonText:'<i class="fa fa-thumbs-up" aria-hidden="true"></i> OK',
-                                 })
+                                 causalEffectPrompt(response['treatment'],response['outcome'],response['effect']);
                               },
+                              error: function(req, status, error){
+                                errorPrompt(req.responseText);
+                              }
                            });
                         }
                         else{
-                           Swal.fire({
-                                    title: '<strong>No selected estimand</strong>',
-                                    icon: 'error',
-                                    html:
-                                       '<p>No selected estimand found. Please, try again</p>',
-                                    showCloseButton: false,
-                                    showCancelButton: false,
-                                    focusConfirm: false,
-                                    confirmButtonText:'<i class="fa fa-thumbs-up" aria-hidden="true"></i> OK',
-                           });
+                              errorPrompt('No selected estimand found. Please, try again');
                            }
                         })();
                      },
-                     error: function(response){
+                     error: function(req, status, error){
+                        errorPrompt(req.responseText);
                      }
+
                });
       }
 
       function showCausalEffect(g, treatment, outcome, adjusted){
-         console.log('adjusted',  JSON.stringify(adjusted));
-         $.ajax({url: '/compute-causal-effect', 
+         $.ajax({url: '/compute-effect-from-graph', 
             type:'POST',
             data: {
                      'graph': g,
@@ -531,29 +520,10 @@ E D
                      'adjusted': JSON.stringify(adjusted),
                   },
                success: function(response){
-                  Swal.fire({
-                     title: '<strong>Computed Causal Effect</strong>',
-                     icon: 'info',
-                     html:
-                        response,
-                     showCloseButton: false,
-                     showCancelButton: false,
-                     focusConfirm: false,
-                     confirmButtonText:'<i class="fa fa-thumbs-up" aria-hidden="true"></i> OK',
-                     })
+                  causalEffectPrompt(response['treatment'],response['outcome'],response['effect']);
                },
-               error: function(response){
-                  /* TODO : SHOW THE ERROR MESSAGE INSTEAD OF A GENERIC ONE */
-                  Swal.fire({
-                     title: '<strong>Something wrong</strong>',
-                     icon: 'error',
-                     html:
-                        '<p>Please, make sure the names of the nodes are correct, that a csv file has been chosen and that csv colums are named the same as the nodes in the graph.',
-                     showCloseButton: false,
-                     showCancelButton: false,
-                     focusConfirm: false,
-                     confirmButtonText:'<i class="fa fa-thumbs-down" aria-hidden="true"></i> OK',
-                  })
+               error: function(req, status, error){
+                  errorPrompt(req.responseText);
                }
          });
       }

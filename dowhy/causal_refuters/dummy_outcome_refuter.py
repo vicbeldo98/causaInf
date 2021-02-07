@@ -14,6 +14,9 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
+from sklearn.model_selection import train_test_split
+
+from dowhy.causal_refuters.add_unobserved_common_cause import AddUnobservedCommonCause
 
 TestFraction = namedtuple('TestFraction', ['base','other'])
 
@@ -52,11 +55,11 @@ class DummyOutcomeRefuter(CausalRefuter):
     
     Supports additional parameters that can be specified in the refute_estimate() method.
 
-    :param num_simulations: The number of simulations to be run, which defaults to ``CausalRefuter.DEFAULT_NUM_SIMULATIONS`` 
+    :param num_simulations: The number of simulations to be run, which defaults to ``CausalRefuter.DEFAULT_NUM_SIMULATIONS``
     :type num_simulations: int, optional
 
     :param transformation_list: It is a list of actions to be performed to obtain the outcome, which defaults to ``DummyOutcomeRefuter.DEFAULT_TRANSFORMATION``.
-      The default transformation is as follows: 
+      The default transformation is as follows:
       
       ``[("zero",""),("noise", {'std_dev':1} )]``
     :type transformation_list: list, optional
@@ -66,7 +69,7 @@ class DummyOutcomeRefuter(CausalRefuter):
     * function argument: function ``pd.Dataframe -> np.ndarray``
         
         It takes in a function that takes the input data frame as the input and outputs the outcome
-        variable. This allows us to create an output varable that only depends on the covariates and does not depend 
+        variable. This allows us to create an output varable that only depends on the covariates and does not depend
         on the treatment variable.
 
     * string argument
@@ -99,12 +102,12 @@ class DummyOutcomeRefuter(CausalRefuter):
           
           ``[(neural_network,{'alpha': 0.0001, 'beta': 0.9}),('permute',{'permute_fraction': 0.2}),('noise',{'std_dev': 0.1})]``
           
-          The neural network is invoked as ``neural_network(X_train, outcome_train, **args)``. 
+          The neural network is invoked as ``neural_network(X_train, outcome_train, **args)``.
         
         * If a function from the above list is used
           ``[('knn',{'n_neighbors':5}), ('permute', {'permute_fraction': val} ), ('noise', {'std_dev': val} )]``
 
-    :param true_causal_effect: A function that is used to get the True Causal Effect for the modelled dummy outcome. 
+    :param true_causal_effect: A function that is used to get the True Causal Effect for the modelled dummy outcome.
       It defaults to ``DummyOutcomeRefuter.DEFAULT_TRUE_CAUSAL_EFFECT``, which means that there is no relationship between the treatment and outcome in the
       dummy data.
     :type true_causal_effect: function
@@ -114,8 +117,8 @@ class DummyOutcomeRefuter(CausalRefuter):
     
     where
 
-    * ``y_hat`` is the dummy outcome 
-    * ``h(t)`` is the function that gives the true causal effect 
+    * ``y_hat`` is the dummy outcome
+    * ``h(t)`` is the function that gives the true causal effect
     * ``f(W)`` is the best estimate of ``y`` obtained keeping ``t`` constant. This ensures that the variation in output of function ``f(w)`` is not caused by ``t``.
 
     .. note:: The true causal effect should take an input of the same shape as the treatment and the output should match the shape of the outcome
@@ -129,13 +132,13 @@ class DummyOutcomeRefuter(CausalRefuter):
        Furthermore, it gives the ability to explictly select or deselect the covariates present in the estimation of the 
        outcome. This is done by either adding or explicitly removing variables from the list as shown below: 
     
-    .. note:: 
+    .. note::
             * We need to pass required_variables = ``[W0,W1]`` if we want ``W0`` and ``W1``.
             * We need to pass required_variables = ``[-W0,-W1]`` if we want all variables excluding ``W0`` and ``W1``.
     
     3. If the value is True, we wish to include all variables to estimate the value of the outcome.
 
-    .. warning:: A ``False`` value is ``INVALID`` and will result in an ``error``. 
+    .. warning:: A ``False`` value is ``INVALID`` and will result in an ``error``.
     
     .. note:: These inputs are fed to the function for estimating the outcome variable. The same set of required_variables is used for each
         instance of an internal estimation function.
@@ -145,14 +148,14 @@ class DummyOutcomeRefuter(CausalRefuter):
     :type bucket_size_scale_factor: float, optional
         ::
 
-            The number of buckets is given by: 
+            The number of buckets is given by:
                 (max value - min value)
                 ------------------------
                 (scale_factor * std_dev)
 
     :param min_data_point_threshold: The minimum number of data points for an estimator to run.
       This defaults to ``DummyOutcomeRefuter.MIN_DATA_POINT_THRESHOLD``. If the number of data points is too few
-      for a certain category, we make use of the ``DummyOutcomeRefuter.DEFAULT_TRANSFORMATION`` for generaring the dummy outcome            
+      for a certain category, we make use of the ``DummyOutcomeRefuter.DEFAULT_TRANSFORMATION`` for generaring the dummy outcome       
     :type min_data_point_threshold: int, optional
     """
     
@@ -160,7 +163,7 @@ class DummyOutcomeRefuter(CausalRefuter):
     SUPPORTED_ESTIMATORS = ["linear_regression", "knn", "svm", "random_forest", "neural_network"]
     # The default standard deviation for noise
     DEFAULT_STD_DEV = 0.1
-    # The default scaling factor to determine the bucket size 
+    # The default scaling factor to determine the bucket size
     DEFAULT_BUCKET_SCALE_FACTOR = 0.5
     # The minimum number of points for the estimator to run
     MIN_DATA_POINT_THRESHOLD = 30
@@ -171,6 +174,8 @@ class DummyOutcomeRefuter(CausalRefuter):
     # The Default split for the number of data points that fall into the training and validation sets
     DEFAULT_TEST_FRACTION = [TestFraction(0.5, 0.5)]
 
+    DEFAULT_NEW_DATA_WITH_UNOBSERVED_CONFOUNDING = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
@@ -180,6 +185,7 @@ class DummyOutcomeRefuter(CausalRefuter):
         self._bucket_size_scale_factor = kwargs.pop("bucket_size_scale_factor", DummyOutcomeRefuter.DEFAULT_BUCKET_SCALE_FACTOR)
         self._min_data_point_threshold = kwargs.pop("min_data_point_threshold", DummyOutcomeRefuter.MIN_DATA_POINT_THRESHOLD)
         self._test_fraction = kwargs.pop("_test_fraction", DummyOutcomeRefuter.DEFAULT_TEST_FRACTION)
+        self._unobserved_confounder_values = kwargs.pop("unobserved_confounder_values", DummyOutcomeRefuter.DEFAULT_NEW_DATA_WITH_UNOBSERVED_CONFOUNDING)
         required_variables = kwargs.pop("required_variables", True)
         
         if required_variables is False:
@@ -211,12 +217,13 @@ class DummyOutcomeRefuter(CausalRefuter):
         # We use collections.OrderedDict to maintain the order in which the data is stored
         causal_effect_map = OrderedDict()
 
-        # Check if we are using an estimator in the transformation list 
+        # Check if we are using an estimator in the transformation list
         estimator_present = self._has_estimator()
         
         # The rationale behind ordering of the loops is the fact that we induce randomness everytime we create the 
         # Train and the Validation Datasets. Thus, we run the simulation loop followed by the training and the validation
         # loops. Thus, we can get different values everytime we get the estimator.
+        
         for _ in range( self._num_simulations ):
             estimates = []
             
@@ -227,12 +234,19 @@ class DummyOutcomeRefuter(CausalRefuter):
                     self.logger.warning("'test_fraction' is not applicable as there is no base treatment value.")
                 
                 # We set X_train = 0 and outcome_train to be 0
+                if self._unobserved_confounder_values is not None:
+                    self._data['simulated'] = self._unobserved_confounder_values
+                    self._chosen_variables.append('simulated')
+                    
                 validation_df = self._data
                 X_train = None
                 outcome_train = None
-                X_validation = validation_df[self._chosen_variables].values
-                outcome_validation = validation_df['y'].values
+                X_validation_df = validation_df[self._chosen_variables]
 
+
+                X_validation = X_validation_df.values
+                outcome_validation = validation_df['y'].values
+                
                 # Get the final outcome, after running through all the values in the transformation list
                 outcome_validation = self.process_data(X_train, outcome_train, X_validation, outcome_validation, self._transformation_list)
                 
@@ -243,25 +257,32 @@ class DummyOutcomeRefuter(CausalRefuter):
                     causal_effect_map[None] = self._true_causal_effect( validation_df[ self._treatment_name[0] ] )  
                 
                 outcome_validation += causal_effect_map[None]     
+                
+                
                 new_data = validation_df.assign(dummy_outcome=outcome_validation)
+            
+                
                 new_estimator = CausalEstimator.get_estimator_object(new_data, identified_estimand, self._estimate)
                 new_effect = new_estimator.estimate_effect()
                 estimates.append(new_effect.value)
 
             else:
+                
                 groups = self.preprocess_data_by_treatment()
                 group_count = 0
                 
                 if len(self._test_fraction) == 1:
-                    self._test_fraction = len(groups) * self._test_fraction 
+                    self._test_fraction = len(groups) * self._test_fraction
 
                 for key_train, _ in groups:
                     base_train = groups.get_group(key_train).sample(frac=self._test_fraction[group_count].base)
                     train_set = set( [ tuple(line) for line in base_train.values ] )
                     total_set = set( [ tuple(line) for line in groups.get_group(key_train).values ] )
                     base_validation = pd.DataFrame( list( total_set.difference(train_set) ), columns=base_train.columns )
-
-                    X_train = base_train[self._chosen_variables].values
+                    X_train_df = base_train[self._chosen_variables]
+                    
+                    X_train = X_train_df.values
+                    
                     outcome_train = base_train['y'].values
                     
                     validation_df = []
@@ -273,7 +294,9 @@ class DummyOutcomeRefuter(CausalRefuter):
                             validation_df.append(groups.get_group(key_validation).sample(frac=self._test_fraction[group_count].other))
                     
                     validation_df = pd.concat(validation_df)
-                    X_validation = validation_df[self._chosen_variables].values
+                    X_validation_df = validation_df[self._chosen_variables]
+                    
+                    X_validation = X_validation_df.values
                     outcome_validation = validation_df['y'].values
 
                     # If the number of data points is too few, run the default transformation: [("zero",""),("noise", {'std_dev':1} )]
@@ -294,13 +317,17 @@ class DummyOutcomeRefuter(CausalRefuter):
                     
                     # Add h(t) to f(W) to get the dummy outcome
                     outcome_validation += causal_effect_map[key_train]      
+    
                     new_data = validation_df.assign(dummy_outcome=outcome_validation)
                     new_estimator = CausalEstimator.get_estimator_object(new_data, identified_estimand, self._estimate)
                     new_effect = new_estimator.estimate_effect()
+
                     estimates.append(new_effect.value)
                     group_count += 1
+                    
 
             simulation_results.append(estimates)
+
 
         # We convert to ndarray for ease in indexing
         # The data is of the form
@@ -308,9 +335,9 @@ class DummyOutcomeRefuter(CausalRefuter):
         # sim2: cat1 cat2 ... catn
         simulation_results = np.array(simulation_results)
 
-        # Note: We would like the causal_estimator to find the true causal estimate that we have specified through this 
-        # refuter. Let the value of the true causal effect be h(t). In the following section of code, we wish to find out if h(t) falls in the 
-        # distribution of the refuter. 
+        # Note: We would like the causal_estimator to find the true causal estimate that we have specified through this
+        # refuter. Let the value of the true causal effect be h(t). In the following section of code, we wish to find out if h(t) falls in the
+        # distribution of the refuter.
 
         if estimator_present == False:
             
@@ -326,10 +353,11 @@ class DummyOutcomeRefuter(CausalRefuter):
                     )
 
             refute.add_significance_test_results(
-                self.test_significance(dummy_estimate, simulation_results)
+                self.test_significance(dummy_estimate, np.ravel(simulation_results))
             )
 
             refute.add_refuter(self)
+
             refute_list.append(refute)
 
         else:
@@ -354,6 +382,7 @@ class DummyOutcomeRefuter(CausalRefuter):
 
                 refute.add_refuter(self)
                 refute_list.append(refute)
+
 
         return refute_list
 
@@ -431,6 +460,11 @@ class DummyOutcomeRefuter(CausalRefuter):
         :returns: ``pandas.core.groupby.generic.DataFrameGroupBy``
         """
         assert len(self._treatment_name) == 1, "At present, DoWhy supports a simgle treatment variable"
+
+         
+        if self._unobserved_confounder_values is not None:
+            self._data['simulated'] = self._unobserved_confounder_values
+            self._chosen_variables.append('simulated')
         
         treatment_variable_name = self._treatment_name[0] # As we only have a single treatment
         variable_type = self._data[treatment_variable_name].dtypes
@@ -474,6 +508,7 @@ class DummyOutcomeRefuter(CausalRefuter):
         estimator = self._get_regressor_object(action, **func_args)
         X = X_train
         y = outcome
+
         estimator = estimator.fit(X, y)
         
         return estimator.predict
