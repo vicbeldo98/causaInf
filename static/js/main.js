@@ -101,7 +101,7 @@ var GUI = {
 		document.getElementById("highlight_puredirect").checked = typeof(sty["puredirectpath_inactive"]) === "undefined";
 		_.each(["biasingpath","causalpath","exposure","latentnode","lnode","mnode","other",
 			"outcome","rnode","adjustednode"],function(n){
-			document.getElementById("li"+n).src="images/legend/"+s+"/"+n+".png"
+			document.getElementById("li"+n).src="static/images/legend/"+s+"/"+n+".png"
 		},this);
 		DAGittyControl.setStyle( s )
 	}
