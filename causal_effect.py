@@ -72,19 +72,22 @@ def retrieveCorrespondingEstimand(identified_estimand, treatment, outcome, adjus
 
 
 def estimate_with_variables(csv_content, graph, treatment, outcome, adjusted):
-    data = load_csv(csv_content)
-    model = CausalModel(
-        data=data,
-        treatment=treatment.split(','),
-        outcome=outcome.split(','),
-        graph=graph,
-        proceed_when_unidentifiable=True)
-    identified_estimand = model.identify_effect()
-    estimand_name = retrieveCorrespondingEstimand(identified_estimand, treatment, outcome, adjusted)
-    if estimand_name is None:
-        raise Exception(CANNOT_FIND_SUITABLE_ESTIMAND)
-    causal_effect = estimate_effect_with_estimand(model, identified_estimand, estimand_name, True)
-    return causal_effect
+    try:
+        data = load_csv(csv_content)
+        model = CausalModel(
+            data=data,
+            treatment=treatment.split(","),
+            outcome=outcome.split(','),
+            graph=graph,
+            proceed_when_unidentifiable=True)
+        identified_estimand = model.identify_effect()
+        estimand_name = retrieveCorrespondingEstimand(identified_estimand, treatment, outcome, adjusted)
+        if estimand_name is None:
+            raise Exception(CANNOT_FIND_SUITABLE_ESTIMAND)
+        causal_effect = estimate_effect_with_estimand(model, identified_estimand, estimand_name, True)
+        return causal_effect
+    except Exception as e:
+        raise Exception('{}'.format(e))
 
 
 def estimate_effect_with_estimand(model, identified_estimand, estimand_name, from_graph=False):

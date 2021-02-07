@@ -20,9 +20,13 @@ def compute_effect_from_graph():
     if 'csv_content' not in session.keys():
         raise Exception('No csv file found. Please, upload one first.')
     if request.form['treatment'] == '':
-        raise Exception('Create exposure variables on the graph')
+        raise Exception('Create exposure variable on the graph')
     if request.form['outcome'] == '':
         raise Exception('Create outcome variable on the graph')
+    if len(request.form['treatment'].split(",")) > 1:
+        raise Exception('Just one exposure variable allowed')
+    if len(request.form['outcome'].split(",")) > 1:
+        raise Exception('Just one outcome variable allowed')
 
     causal_effect = estimate_with_variables(session['csv_content'], request.form['graph'], request.form['treatment'], request.form['outcome'], request.form['adjusted'])
     return {'treatment' : request.form['treatment'], 'outcome' : request.form['outcome'], 'effect' : causal_effect}
@@ -34,12 +38,18 @@ def retrieve_estimands():
         raise Exception('No csv file found. Please, upload one first.')
     if request.form['treatment'] == '':
         raise Exception('Create exposure variables on the graph')
+    elif len(request.form['treatment'].split(",")) > 1:
+        raise Exception('Just one exposure variable allowed')
     else:
         session['treatment'] = request.form['treatment']
+
     if request.form['outcome'] == '':
         raise Exception('Create outcome variable on the graph')
+    elif len(request.form['outcome'].split(",")) > 1:
+        raise Exception('Just one outcome variable allowed')
     else:
-        session['outcome'] = request.form['outcome']
+        session['outcome'] = request.form['outcome']        
+
     causal_estimands, session['model'], session['identified_estimand'] = compute_estimands(session['csv_content'], request.form['graph'], request.form['treatment'], request.form['outcome'])
     return json.dumps(dict(causal_estimands), default=str)
 
