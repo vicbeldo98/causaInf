@@ -61,14 +61,6 @@ def retrieveCorrespondingEstimand(identified_estimand, treatment, outcome, adjus
     for key in backdoor_dict.keys():
         if backdoor_dict[key] == adjusted:
             estimand_name = key
-    if estimand_name is None:
-        frontdoor_var = identified_estimand.get_frontdoor_variables()
-        if frontdoor_var != [] and frontdoor_var == adjusted:
-            estimand_name = 'frontdoor'
-    if estimand_name is None:
-        instr_var = identified_estimand.get_instrumental_variables()
-        if instr_var != [] and instr_var == adjusted:
-            estimand_name = 'iv'
 
     return estimand_name
 
