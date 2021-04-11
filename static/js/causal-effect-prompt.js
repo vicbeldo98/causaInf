@@ -3,7 +3,7 @@ function causalEffectPrompt(treatment, outcome, effect) {
         title: '<strong>Computed Causal Effect</strong>',
         icon: 'info',
         html:
-            'The causal effect of ' + treatment + ' on ' + outcome + ' is ' + effect,
+            'The causal effect ' + treatment + ' on ' + outcome + ' is ' + effect,
         showCloseButton: false,
         showCancelButton: false,
         focusConfirm: false,

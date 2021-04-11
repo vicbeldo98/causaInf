@@ -494,23 +494,19 @@ E D
                });
       }
 
-      function printEstimationMethods(result){
+      function printEstimationMethods(estimand, estimation_options){
+         console.log('estimation', estimation_options);
          (async () => {
             title = 'Please, choose the estimation method you would wish to use';
             subtitle = 'Available estimation methods';
-            const {value: estimation_method } = await optionsPrompt(title, subtitle, result);
+            const {value: estimation_method } = await optionsPrompt(title, subtitle, estimation_options);
             if(estimation_method){
-               console.log(estimation_method);
-               estimate(estimand, estimation_method, printEstimationMethods);        
+               causalEffect(estimand, estimation_method);        
             }
             else{
                errorPrompt('No selected estimation method found. Please, try again');
             }
          })();         
-      }
-
-      function printEstimation(result){
-         console.log('holi', result);
       }
 
       function showCausalEffect(g, treatment, outcome, adjusted){

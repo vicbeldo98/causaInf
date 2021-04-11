@@ -37,7 +37,7 @@ def retrieve_estimands():
 
 
 @app.route('/compute-effect-with-estimand-and-estimator', methods=['POST'])
-def compute_effect_with_estimand():
+def compute_effect_with_estimand_and_estimator():
     causal_effect = estimate_effect_with_estimand_and_estimator(session['model'], session['identified_estimand'], request.form['estimand_name'], request.form['estimation_method'])
     return {'treatment' : session['treatment'], 'outcome' : session['outcome'], 'effect' : causal_effect}
 

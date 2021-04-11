@@ -1,5 +1,6 @@
 import pandas as pd
 from dowhy.causal_model import CausalModel
+import dowhy
 from io import StringIO
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LassoCV
@@ -12,6 +13,7 @@ PARSE_ERROR_CSV = 'Error parsing the csv. Please, select another.'
 CSV_ERROR = 'Something went wrong with the csv loading. Please, select another.'
 PROBLEM_CAUSAL_MODEL_GRAPH = 'Something went wrong when estimating the Causal Model. Please, make sure that all nodes in the graph have a corresponding csv column, that the graph is directed and acyclic and that treatment and outcome variables are correctly marked on the graph.'
 PROBLEM_CAUSAL_MODEL_MANUAL = 'Something went wrong when estimating the Causal Model.'
+CANNOT_FIND_SUITABLE_ESTIMATOR = 'Something went wrong with the computed estimator'
 
 
 def load_csv(csv_content):
@@ -84,7 +86,12 @@ def estimate_with_variables(csv_content, graph, treatment, outcome, adjusted):
         raise Exception('{}'.format(e))
 
 
-def estimate_effect_with_estimand_and_estimator(model, identified_estimand, estimand_name, estimand_method, from_graph=False):
+def estimate_effect_with_estimand_and_estimator(model, identified_estimand, estimand_name, estimand_method, iv_name=None, from_graph=False):
+    print('***********************************************')
+    print(estimand_name)
+    print(estimand_method)
+    print('***********************************************')
+
     try:
         if(estimand_method == 'econml.dml.DML'):
             estimate = model.estimate_effect(identified_estimand,
@@ -110,25 +117,31 @@ def estimate_effect_with_estimand_and_estimator(model, identified_estimand, esti
                                              method_params={'distance_metric' : "minkowski", 'p' : 2})
 
         elif(estimand_method == 'propensity_score_stratification'):
-            print('TO DO')
+            estimate = model.estimate_effect(identified_estimand,
+                                             method_name=estimand_name + '.' + estimand_method,
+                                             target_units="ate")
 
         elif(estimand_method == 'propensity_score_matching'):
-            print('TO DO')
+            estimate = model.estimate_effect(identified_estimand,
+                                             method_name=estimand_name + '.' + estimand_method,
+                                             target_units="ate")
 
         elif(estimand_method == 'propensity_score_weighting'):
-            print('TO DO')
-
-        elif(estimand_method == 'instrumental_variable'):
-            print('TO DO')
+            estimate = model.estimate_effect(identified_estimand,
+                                             method_name=estimand_name + '.' + estimand_method,
+                                             target_units="ate",
+                                             method_params={"weighting_scheme" : "ips_weight"})
+        else:
+            raise Exception(CANNOT_FIND_SUITABLE_ESTIMATOR)
 
         return round(estimate.value, 3)
 
-    except Exception:
+    except Exception as e:
         if from_graph:
             exception_msg = PROBLEM_CAUSAL_MODEL_GRAPH
         else:
             exception_msg = PROBLEM_CAUSAL_MODEL_MANUAL
-        raise Exception('{}'.format(exception_msg))
+        raise Exception('{}'.format(exception_msg + str(e)))
 
 
 def compute_estimation_methods(estimand):
@@ -140,6 +153,7 @@ def compute_estimation_methods(estimand):
         'propensity_score_weighting': 'Propensity Score Weighting',
         'econml.dml.DML': 'Double Machine Learning'
     }
-    if estimand.startswith('iv'):
+    '''if estimand.startswith('iv'):
         estimation_options['instrumental_variable'] = 'Wald estimator'
+    '''
     return estimation_options
