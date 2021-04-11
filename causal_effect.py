@@ -105,7 +105,7 @@ def estimate_effect_with_estimand_and_estimator(model, identified_estimand, esti
         else:
             raise Exception(CANNOT_FIND_SUITABLE_ESTIMATOR)
 
-        return round(estimate.value, 3)
+        return estimate
 
     except Exception as e:
         if from_graph:
@@ -142,4 +142,4 @@ def refuting_tests(model, identified_estimand, estimate):
     '''Removing a random subset of the data'''
     res_subset = model.refute_estimate(identified_estimand, estimate, method_name="data_subset_refuter", subset_fraction=0.9)
 
-    return [res_random, res_unobserved, res_placebo, res_subset]
+    return {'random-cause' : str(res_random), 'unobserved-common' : str(res_unobserved), 'placebo': str(res_placebo), 'subset-refuter': str(res_subset)}

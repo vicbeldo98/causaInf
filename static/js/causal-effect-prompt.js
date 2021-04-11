@@ -3,10 +3,14 @@ function causalEffectPrompt(treatment, outcome, effect) {
         title: '<strong>Computed Causal Effect</strong>',
         icon: 'info',
         html:
-            'The causal effect ' + treatment + ' on ' + outcome + ' is ' + effect,
-        showCloseButton: false,
-        showCancelButton: false,
+            'The causal effect ' + treatment + ' on ' + outcome + ' is ' + effect + '<br>. Do you wanna refute your model?',
+        showCloseButton: true,
+        showCancelButton: true,
         focusConfirm: false,
-        confirmButtonText:'<i class="fa fa-thumbs-up" aria-hidden="true"></i> OK',
+        confirmButtonText:'Refute',
+     }).then((result) => {
+        if (result.isConfirmed) {
+            refutationTests();
+        }
      });
 }
