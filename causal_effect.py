@@ -1,7 +1,4 @@
-import pandas as pd
 from dowhy.causal_model import CausalModel
-import dowhy
-from io import StringIO
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LassoCV
 from sklearn.ensemble import GradientBoostingRegressor
@@ -16,25 +13,12 @@ PROBLEM_CAUSAL_MODEL_MANUAL = 'Something went wrong when estimating the Causal M
 CANNOT_FIND_SUITABLE_ESTIMATOR = 'Something went wrong with the computed estimator'
 
 
-def load_csv(csv_content):
-    try:
-        data = StringIO(csv_content)
-        dataframe = pd.read_csv(data, sep=",", engine='c', skipinitialspace=True)
-        return dataframe
-    except pd.errors.EmptyDataError:
-        raise Exception('{}'.format(EMPTY_CSV))
-    except pd.errors.ParserError:
-        raise Exception('{}'.format(PARSE_ERROR_CSV))
-    except Exception:
-        raise Exception('{}'.format(CSV_ERROR))
-
-
-def compute_estimands(csv_content, graph, treatment, outcome):
-    data = load_csv(csv_content)
+def compute_estimands(data, graph, treatment, outcome):
+    data = data.astype({treatment : 'bool'}, copy=False)
     model = CausalModel(
         data=data,
-        treatment=treatment.split(','),
-        outcome=outcome.split(','),
+        treatment=treatment,
+        outcome=outcome,
         graph=graph,
         proceed_when_unidentifiable=True
     )
@@ -63,13 +47,11 @@ def retrieveCorrespondingEstimand(identified_estimand, treatment, outcome, adjus
     for key in backdoor_dict.keys():
         if backdoor_dict[key] == adjusted:
             estimand_name = key
-
     return estimand_name
 
 
-def estimate_with_variables(csv_content, graph, treatment, outcome, adjusted):
+def estimate_with_variables(data, graph, treatment, outcome, adjusted):
     try:
-        data = load_csv(csv_content)
         model = CausalModel(
             data=data,
             treatment=treatment.split(","),
@@ -86,12 +68,7 @@ def estimate_with_variables(csv_content, graph, treatment, outcome, adjusted):
         raise Exception('{}'.format(e))
 
 
-def estimate_effect_with_estimand_and_estimator(model, identified_estimand, estimand_name, estimand_method, iv_name=None, from_graph=False):
-    print('***********************************************')
-    print(estimand_name)
-    print(estimand_method)
-    print('***********************************************')
-
+def estimate_effect_with_estimand_and_estimator(model, identified_estimand, estimand_name, estimand_method, from_graph=False):
     try:
         if(estimand_method == 'econml.dml.DML'):
             estimate = model.estimate_effect(identified_estimand,
@@ -109,12 +86,6 @@ def estimate_effect_with_estimand_and_estimator(model, identified_estimand, esti
 
         elif(estimand_method == 'linear_regression'):
             estimate = model.estimate_effect(identified_estimand, method_name=estimand_name + '.' + estimand_method)
-
-        elif(estimand_method == 'distance_matching'):
-            estimate = model.estimate_effect(identified_estimand,
-                                             method_name=estimand_name + '.' + estimand_method,
-                                             target_units="ate",
-                                             method_params={'distance_metric' : "minkowski", 'p' : 2})
 
         elif(estimand_method == 'propensity_score_stratification'):
             estimate = model.estimate_effect(identified_estimand,
@@ -147,13 +118,28 @@ def estimate_effect_with_estimand_and_estimator(model, identified_estimand, esti
 def compute_estimation_methods(estimand):
     estimation_options = {
         'linear_regression': 'Linear Regression',
-        'distance_matching': 'Distance matching',
         'propensity_score_stratification': 'Propensity Score Stratification',
         'propensity_score_matching': 'Propensity Score Matching',
         'propensity_score_weighting': 'Propensity Score Weighting',
         'econml.dml.DML': 'Double Machine Learning'
     }
-    '''if estimand.startswith('iv'):
-        estimation_options['instrumental_variable'] = 'Wald estimator'
-    '''
     return estimation_options
+
+
+def refuting_tests(model, identified_estimand, estimate):
+
+    '''Adding a random common cause variable'''
+    res_random = model.refute_estimate(identified_estimand, estimate, method_name="random_common_cause")
+
+    '''Adding an unobserved common cause variable'''
+    res_unobserved = model.refute_estimate(identified_estimand, estimate, method_name="add_unobserved_common_cause",
+                                           confounders_effect_on_treatment="binary_flip", confounders_effect_on_outcome="linear",
+                                           effect_strength_on_treatment=0.01, effect_strength_on_outcome=0.02)
+
+    '''Replacing treatment with a random (placebo) variable'''
+    res_placebo = model.refute_estimate(identified_estimand, estimate, method_name="placebo_treatment_refuter", placebo_type="permute")
+
+    '''Removing a random subset of the data'''
+    res_subset = model.refute_estimate(identified_estimand, estimate, method_name="data_subset_refuter", subset_fraction=0.9)
+
+    return [res_random, res_unobserved, res_placebo, res_subset]
