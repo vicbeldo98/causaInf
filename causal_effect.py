@@ -78,15 +78,16 @@ def estimate_with_variables(csv_content, graph, treatment, outcome, adjusted):
         estimand_name = retrieveCorrespondingEstimand(identified_estimand, treatment, outcome, adjusted)
         if estimand_name is None:
             raise Exception(CANNOT_FIND_SUITABLE_ESTIMAND)
-        causal_effect = estimate_effect_with_estimand(model, identified_estimand, estimand_name, True)
+        causal_effect = estimate_effect_with_estimand_and_estimator(model, identified_estimand, estimand_name, 'econml.dml.DML', True)
         return causal_effect
     except Exception as e:
         raise Exception('{}'.format(e))
 
 
-def estimate_effect_with_estimand(model, identified_estimand, estimand_name, from_graph=False):
+def estimate_effect_with_estimand_and_estimator(model, identified_estimand, estimand_name, estimand_method, from_graph=False):
     try:
-        dml_estimate = model.estimate_effect(identified_estimand,
+        if(estimand_method == 'econml.dml.DML'):
+            estimate = model.estimate_effect(identified_estimand,
                                              method_name=estimand_name + ".econml.dml.DML",
                                              control_value=0,
                                              treatment_value=1,
@@ -98,10 +99,47 @@ def estimate_effect_with_estimand(model, identified_estimand, estimand_name, fro
                                                                             'featurizer': PolynomialFeatures(degree=1, include_bias=False)},
                                                             "fit_params": {}}
                                              )
-        return round(dml_estimate.value, 3)
+
+        elif(estimand_method == 'linear_regression'):
+            estimate = model.estimate_effect(identified_estimand, method_name=estimand_name + '.' + estimand_method)
+
+        elif(estimand_method == 'distance_matching'):
+            estimate = model.estimate_effect(identified_estimand,
+                                             method_name=estimand_name + '.' + estimand_method,
+                                             target_units="ate",
+                                             method_params={'distance_metric' : "minkowski", 'p' : 2})
+
+        elif(estimand_method == 'propensity_score_stratification'):
+            print('TO DO')
+
+        elif(estimand_method == 'propensity_score_matching'):
+            print('TO DO')
+
+        elif(estimand_method == 'propensity_score_weighting'):
+            print('TO DO')
+
+        elif(estimand_method == 'instrumental_variable'):
+            print('TO DO')
+
+        return round(estimate.value, 3)
+
     except Exception:
         if from_graph:
             exception_msg = PROBLEM_CAUSAL_MODEL_GRAPH
         else:
             exception_msg = PROBLEM_CAUSAL_MODEL_MANUAL
         raise Exception('{}'.format(exception_msg))
+
+
+def compute_estimation_methods(estimand):
+    estimation_options = {
+        'linear_regression': 'Linear Regression',
+        'distance_matching': 'Distance matching',
+        'propensity_score_stratification': 'Propensity Score Stratification',
+        'propensity_score_matching': 'Propensity Score Matching',
+        'propensity_score_weighting': 'Propensity Score Weighting',
+        'econml.dml.DML': 'Double Machine Learning'
+    }
+    if estimand.startswith('iv'):
+        estimation_options['instrumental_variable'] = 'Wald estimator'
+    return estimation_options

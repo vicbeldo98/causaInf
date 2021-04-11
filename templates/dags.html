@@ -35,7 +35,10 @@
    <script type="text/javascript" src="{{url_for('static', filename='js/main.js')}}"></script>
    <script type="text/javascript" src="{{url_for('static', filename='js/base64.js')}}"></script>
    <script type="text/javascript" src="{{url_for('static', filename='js/causal-effect-prompt.js')}}"></script>
+   <script type="text/javascript" src="{{url_for('static', filename='js/options-prompt.js')}}"></script>
    <script type="text/javascript" src="{{url_for('static', filename='js/error-prompt.js')}}"></script>
+   <script type="text/javascript" src="{{url_for('static', filename='js/ajax-calls.js')}}"></script>
+
 
 	
 	<script type="text/javascript" src="https://www.google.com/recaptcha/api.js?render=explicit" 
@@ -461,12 +464,9 @@ E D
                   'outcome': outcome.toString(),
                },
                   success: function(response){
-                     var prompt = '<p><b>Please, choose the method and the variables you would wish to use</b></p>';
                      var estimands_dict = JSON.parse(response);
                      var inputOptions = {};
                      for(var k in estimands_dict){
-                        console.log(k);
-                        console.log(estimands_dict[k]);
                         var related_variables;
                         if('related_variables' in estimands_dict[k] && estimands_dict[k]['related_variables'].length == 0){
                            related_variables = 'no variable'
@@ -476,40 +476,41 @@ E D
                         inputOptions[k] =  k + ': ' + related_variables;
                      }
                      (async () => {
-                        const {value: estimand } = await Swal.fire({
-                        title: '<strong>Identified estimands</strong>',
-                        icon: 'question',
-                        customClass: {input: 'my-radio'},
-                        input: 'radio',
-                        inputOptions: inputOptions,
-                        html: prompt,
-                        showCloseButton: false,
-                        showCancelButton: false,
-                        focusConfirm: true,
-                        });
+                        title = 'Please, choose the identification method and related variables you would wish to use';
+                        subtitle = 'Identified methods';
+                        const {value: estimand } = await optionsPrompt(title, subtitle, inputOptions);
                         if(estimand){
-                           $.ajax({
-                              url: '/compute-effect-with-estimand', 
-                              type:'POST',
-                              data: {'estimand_name': estimand},
-                              success: function(response){
-                                 causalEffectPrompt(response['treatment'],response['outcome'],response['effect']);
-                              },
-                              error: function(req, status, error){
-                                errorPrompt(req.responseText);
-                              }
-                           });
+                           estimationMethods(estimand, printEstimationMethods);                       
                         }
                         else{
-                              errorPrompt('No selected estimand found. Please, try again');
-                           }
-                        })();
-                     },
-                     error: function(req, status, error){
-                        errorPrompt(req.responseText);
-                     }
+                           errorPrompt('No selected estimand found. Please, try again');
+                        }
+                     })();
+                  },
+                  error: function(req, status, error){
+                     errorPrompt(req.responseText);
+                  }
 
                });
+      }
+
+      function printEstimationMethods(result){
+         (async () => {
+            title = 'Please, choose the estimation method you would wish to use';
+            subtitle = 'Available estimation methods';
+            const {value: estimation_method } = await optionsPrompt(title, subtitle, result);
+            if(estimation_method){
+               console.log(estimation_method);
+               estimate(estimand, estimation_method, printEstimationMethods);        
+            }
+            else{
+               errorPrompt('No selected estimation method found. Please, try again');
+            }
+         })();         
+      }
+
+      function printEstimation(result){
+         console.log('holi', result);
       }
 
       function showCausalEffect(g, treatment, outcome, adjusted){
@@ -529,6 +530,7 @@ E D
                }
          });
       }
+
    </script>
    <h3 onclick="displayToggle('compute')"><img src="{{url_for('static', filename='images/arrow-down.png')}}" alt="" id="a_compute"> Compute causal effect</h3>
    <div id="compute" style="display:block">
