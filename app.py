@@ -24,7 +24,7 @@ def compute_effect_from_graph():
     '''
     check_required_variables(request.form['treatment'], request.form['outcome'])
     causal_effect = estimate_with_variables(session['csv_content'], request.form['graph'], request.form['treatment'], request.form['outcome'], request.form['adjusted'])
-    return {'treatment' : request.form['treatment'], 'outcome' : request.form['outcome'], 'effect' : causal_effect}
+    return {'treatment' : request.form['treatment'], 'outcome' : request.form['outcome'], 'effect' : round(causal_effect.value, 3)}
 
 
 @app.route('/retrieve-estimands', methods=['POST'])

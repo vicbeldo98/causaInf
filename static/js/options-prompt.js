@@ -9,5 +9,6 @@ function optionsPrompt(title, subtitle, inputOptions) {
         showCloseButton: false,
         showCancelButton: false,
         focusConfirm: true,
+        width: 'auto'
     });
 }

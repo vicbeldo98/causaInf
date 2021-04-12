@@ -514,7 +514,7 @@ E D
                      'adjusted': JSON.stringify(adjusted),
                   },
                success: function(response){
-                  causalEffectPrompt(response['treatment'],response['outcome'],response['effect']);
+                  simpleCausalEffectPrompt(response['treatment'],response['outcome'],response['effect']);
                },
                error: function(req, status, error){
                   errorPrompt(req.responseText);

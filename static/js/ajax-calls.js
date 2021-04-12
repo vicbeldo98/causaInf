@@ -4,7 +4,7 @@ function causalEffect(estimand, estimator){
         type:'POST',
         data: {'estimand_name': estimand, 'estimation_method':estimator},
         success: function(response){
-           causalEffectPrompt(response['treatment'], response['outcome'], response['effect'], refutationTests);
+           causalEffectPrompt(response['treatment'], response['outcome'], response['effect']);
         },
         error: function(req, status, error){
           errorPrompt(req.responseText);
