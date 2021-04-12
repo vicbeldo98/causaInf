@@ -25,29 +25,3 @@ function estimationMethods(estimand, callback){
         }
      });
 }
-
-function refutationTests(){
-   $.ajax({
-       async: false,
-       url: '/refutation-tests', 
-       type:'POST',
-       success: function(response){
-         html = '<ul>'
-         for(const property in response) {
-            html = html +  '<li>' + response[property] + '</li>'
-         }
-         html = html +'<ul>'
-         return Swal.fire({
-            title: '<strong>Refutation Results</strong>',
-            icon: 'info',
-            html: html,
-            showCloseButton: true,
-            focusConfirm: false,
-            confirmButtonText:'<i class="fa fa-thumbs-up" aria-hidden="true"></i> OK',
-         });
-       },
-       error: function(req, status, error){
-         errorPrompt(req.responseText);
-       },
-    });
-}

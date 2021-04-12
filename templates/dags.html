@@ -32,13 +32,13 @@
     <script type="text/javascript" src="{{url_for('static', filename='js/styles/semlike.js')}}"></script>
     <script type="text/javascript" src="{{url_for('static', filename='js/styles/original.js')}}"></script>
 
+
    <script type="text/javascript" src="{{url_for('static', filename='js/main.js')}}"></script>
    <script type="text/javascript" src="{{url_for('static', filename='js/base64.js')}}"></script>
    <script type="text/javascript" src="{{url_for('static', filename='js/causal-effect-prompt.js')}}"></script>
    <script type="text/javascript" src="{{url_for('static', filename='js/options-prompt.js')}}"></script>
    <script type="text/javascript" src="{{url_for('static', filename='js/error-prompt.js')}}"></script>
    <script type="text/javascript" src="{{url_for('static', filename='js/ajax-calls.js')}}"></script>
-
 
 	
 	<script type="text/javascript" src="https://www.google.com/recaptcha/api.js?render=explicit" 
@@ -138,13 +138,11 @@
 			}
 		}
 	}
-	window.onload = initialize;
-    </script>
-	
+	window.onload = initialize;      
+   </script>
 </head>
-<body>
-
-<main>
+<body>   
+<main> 
     <ul id="menu">
       <li><a href="javascript:void(0)" id="menu_model_title">Model</a>
          <ul id="menu_model">
@@ -214,7 +212,6 @@ A E Z @-0.791,-1.045
 B D Z @0.680,-0.496
 E D
    </div>
-
 </main>
 
 <aside>
@@ -535,8 +532,6 @@ E D
 </div>
 
 </aside>
-
-   
    <div id="export" style="display: none;">
       <form name="exportform" id="exportform" action="http://www.dagitty.net/pdf/pdf.php" method="POST" target="_blank">
          <input type="hidden" name="exportformsvg" id="exportformsvg" />
