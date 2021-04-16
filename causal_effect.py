@@ -14,7 +14,18 @@ CANNOT_FIND_SUITABLE_ESTIMATOR = 'Something went wrong with the computed estimat
 
 
 def compute_estimands(data, graph, treatment, outcome):
-    data = data.astype({treatment : 'bool'}, copy=False)
+
+    # data = data[data[treatment].notna()]
+    # data = data[data[outcome].notna()]
+    data = data.dropna()
+    data[treatment].apply(float)
+    data[outcome].apply(float)
+    if data[treatment].isin([0, 1]).all():
+        data = data.astype({treatment : 'bool'}, copy=False)
+        print('BINARY TREATMENT...')
+    else:
+        print('NON-BINARY TREATMENT...')
+
     model = CausalModel(
         data=data,
         treatment=treatment,
@@ -69,6 +80,7 @@ def estimate_with_variables(data, graph, treatment, outcome, adjusted):
 
 
 def estimate_effect_with_estimand_and_estimator(model, identified_estimand, estimand_name, estimand_method, from_graph=False):
+
     try:
         if(estimand_method == 'econml.dml.DML'):
             estimate = model.estimate_effect(identified_estimand,

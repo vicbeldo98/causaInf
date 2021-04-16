@@ -409,13 +409,17 @@ E D
    <h3 onclick="displayToggle('load_csv')"><img src="{{url_for('static', filename='images/arrow-down.png')}}" alt="" id="a_load_csv"> Upload csv</h3>
    <div id="load_csv" style="display:block">
       <form action=/upload-csv method="post" id='csv-form' enctype="multipart/form-data">
-         <input type="file" id="upload_csv" onchange="uploadCSV();" accept=".csv">
+         <input type="file" id="upload_csv" name="csvfile" onchange="uploadCSV();" accept=".csv">
       </form>
       <script>
          function uploadCSV(){
+         console.log('1');
          var input = document.getElementById("upload_csv");
+         console.log('2');
          var fReader = new FileReader();
+         console.log('3');
          fReader.readAsText(input.files[0]);
+         console.log('4');
          fReader.onloadend = function(event){
             $.ajax({
                url: '/upload-csv', 

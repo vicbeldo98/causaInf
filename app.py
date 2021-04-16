@@ -2,6 +2,8 @@ from flask import Flask, request, render_template, session, json
 from flask_session import Session
 from causal_effect import estimate_effect_with_estimand_and_estimator, estimate_with_variables, compute_estimands, compute_estimation_methods, refuting_tests
 import pandas as pd
+import numpy as np
+
 
 app = Flask(__name__)
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -56,22 +58,19 @@ def refutation():
 
 @app.route('/upload-csv', methods=['POST'])
 def upload_csv():
-    try:
-        all_data = request.form['file-content'].split('\n')
-        columns = all_data[0].split(',')
-        data = []
-        for row in all_data[1:-1]:
-            data.append([int(element) for element in row.split(',')])
-        df = pd.DataFrame(data, columns=columns)
-        session['csv_content'] = df
-        return '', 200
-    except Exception as e:
-        print(str(e))
+    all_data = request.form['file-content'].split('\r\n')
+    columns = all_data[0].split(',')
+    data = []
+    for row in all_data[1:-1]:
+        data.append([np.nan if element == '' else float(element) for element in row.split(',')])
+    df = pd.DataFrame(data, columns=columns)
+    session['csv_content'] = df
+    return '', 200
 
 
-@app.errorhandler(Exception)
+'''@app.errorhandler(Exception)
 def handle_exception(e):
-    return str(e), 500
+    return str(e), 500'''
 
 
 def check_required_variables(treatment, outcome):
