@@ -132,9 +132,9 @@ def refuting_tests(model, identified_estimand, estimate):
     res_random = model.refute_estimate(identified_estimand, estimate, method_name="random_common_cause")
 
     '''Adding an unobserved common cause variable'''
-    res_unobserved = model.refute_estimate(identified_estimand, estimate, method_name="add_unobserved_common_cause",
+    '''res_unobserved = model.refute_estimate(identified_estimand, estimate, method_name="add_unobserved_common_cause",
                                            confounders_effect_on_treatment="binary_flip", confounders_effect_on_outcome="linear",
-                                           effect_strength_on_treatment=0.01, effect_strength_on_outcome=0.02)
+                                           effect_strength_on_treatment=0.01, effect_strength_on_outcome=0.02)'''
 
     '''Replacing treatment with a random (placebo) variable'''
     res_placebo = model.refute_estimate(identified_estimand, estimate, method_name="placebo_treatment_refuter", placebo_type="permute")
@@ -142,4 +142,4 @@ def refuting_tests(model, identified_estimand, estimate):
     '''Removing a random subset of the data'''
     res_subset = model.refute_estimate(identified_estimand, estimate, method_name="data_subset_refuter", subset_fraction=0.9)
 
-    return {'random-cause' : str(res_random), 'unobserved-common' : str(res_unobserved), 'placebo': str(res_placebo), 'subset-refuter': str(res_subset)}
+    return {'random-cause' : str(res_random), 'placebo': str(res_placebo), 'subset-refuter': str(res_subset)}
