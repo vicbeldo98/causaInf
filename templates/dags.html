@@ -408,9 +408,7 @@ E D
 
    <h3 onclick="displayToggle('load_csv')"><img src="{{url_for('static', filename='images/arrow-down.png')}}" alt="" id="a_load_csv"> Upload csv</h3>
    <div id="load_csv" style="display:block">
-      <form action=/upload-csv method="post" id='csv-form' enctype="multipart/form-data">
-         <input type="file" id="upload_csv" onchange="uploadCSV();" accept=".csv">
-      </form>
+      <input type="file" id="upload_csv" name="csvfile" onchange="uploadCSV();" accept=".csv">
       <script>
          function uploadCSV(){
          var input = document.getElementById("upload_csv");
