@@ -1,10 +1,9 @@
-pandas
-numpy
 flask
 flask_session
-sympy
-sklearn
 networkx
-econml==0.8.1
-tensorflow==2.2.2
-json
+econml==0.10.0
+numpy==1.20.0
+pandas==1.2.4
+scikit-learn==0.24.2
+scipy==1.6.3
+sympy==1.8
