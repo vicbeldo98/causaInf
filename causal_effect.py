@@ -85,7 +85,7 @@ def estimate_effect_with_estimand_and_estimator(model, identified_estimand, esti
                                              )
 
         elif(estimand_method == 'linear_regression'):
-            estimate = model.estimate_effect(identified_estimand, method_name=estimand_name + '.' + estimand_method)
+            estimate = model.estimate_effect(identified_estimand,target_units="ate", method_name=estimand_name + '.' + estimand_method)
 
         elif(estimand_method == 'propensity_score_stratification'):
             estimate = model.estimate_effect(identified_estimand,
