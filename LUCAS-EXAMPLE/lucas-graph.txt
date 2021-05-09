@@ -1,30 +1,27 @@
 dag {
 bb="-11.699,-7.041,8.355,5.572"
-Allergy [pos="-0.265,-5.990"]
-Anxiety [pos="5.873,-0.958"]
-Attention_Disorder [pos="-4.777,0.567"]
-Born_An_Even_Day [pos="-8.502,-2.465"]
-Car_Accident [pos="-7.539,-0.388"]
-Coughing [pos="0.255,-3.069"]
-Fatigue [pos="-1.427,-0.719"]
-Genetics [pos="-1.655,1.282"]
-Lung_Cancer [outcome,pos="-0.800,4.018"]
-Peer_Pressure [pos="3.386,4.521"]
-Smoking [exposure,pos="3.142,0.854"]
-Yellow_Fingers [pos="6.684,3.183"]
-Allergy -> Coughing
-Anxiety -> Smoking
-Attention_Disorder -> Car_Accident
-Coughing -> Fatigue
-Fatigue -> Car_Accident
-Genetics -> Attention_Disorder
-Genetics -> Lung_Cancer
-Lung_Cancer -> Coughing
-Lung_Cancer -> Fatigue
-Peer_Pressure -> Smoking
-Smoking -> Lung_Cancer
-Smoking -> Yellow_Fingers
+Accidente_Coche [pos="-7.539,-0.388"]
+Alergia [pos="-0.265,-5.990"]
+Ansiedad [pos="5.873,-0.958"]
+Cancer_Pulmon [outcome,pos="-0.800,4.018"]
+Dedos_Amarillos [pos="6.684,3.183"]
+Deficit_Atencion [pos="-4.777,0.567"]
+Fatiga [pos="-1.427,-0.719"]
+Fumar [exposure,pos="3.142,0.854"]
+Genetica [pos="-1.655,1.282"]
+Nacido_Dia_Par [pos="-8.502,-2.465"]
+Presion_Social [pos="3.386,4.521"]
+Tos [pos="0.255,-3.069"]
+Alergia -> Tos
+Ansiedad -> Fumar
+Cancer_Pulmon -> Fatiga
+Cancer_Pulmon -> Tos
+Deficit_Atencion -> Accidente_Coche
+Fatiga -> Accidente_Coche
+Fumar -> Cancer_Pulmon
+Fumar -> Dedos_Amarillos
+Genetica -> Cancer_Pulmon
+Genetica -> Deficit_Atencion
+Presion_Social -> Fumar
+Tos -> Fatiga
 }
-
-
-
