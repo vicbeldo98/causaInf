@@ -4,9 +4,11 @@
 
 2.  Place yourself inside the dagitty folder: ```cd dagitty```
 
-3.  Install all the necessary requirementsfor the tool to work: ```pip3 install -r requisitos.txt```
+3.  We are using Poetry to manage all the project dependencies. Install Poetry: ```pip3 install poetry```
 
-4.  Start the flask service by executing the following command: ```python3 app.py```
+4.  Run ``` poetry install``` in order to resolve all the necessary requirementsfor for the tool to work. 
+
+4.  Start the flask service by executing the following command: ```poetry run python3 app.py```
 
 5. Go to (localhost:5000)[http://localhost:5000/] and you should be able to see the new DAGitty version!
 
