@@ -108,6 +108,7 @@ def estimate_effect_with_estimand_and_estimator(model, identified_estimand, esti
             estimate = model.estimate_effect(identified_estimand,
                                              method_name=estimand_name + '.' + estimand_method,
                                              target_units="ate")
+            print(estimate)
 
         elif(estimand_method == 'propensity_score_weighting'):
             estimate = model.estimate_effect(identified_estimand,

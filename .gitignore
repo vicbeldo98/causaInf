@@ -1,4 +1,3 @@
-__pycache__/
+__pycache__
 flask_session/
 .pytest_cache/
-dowhy/
