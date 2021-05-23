@@ -1,29 +1,34 @@
 from __future__ import division
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import PolynomialFeatures
-import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.preprocessing import PolynomialFeatures
+
 sns.set_style("whitegrid")
 sns.set_palette("colorblind")
 import math
-from dowhy import CausalModel
-import dowhy
 
-from sklearn.linear_model import LassoCV
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.linear_model import LassoCV
+
+import dowhy
+from dowhy import CausalModel
+
 
 def load_lucas_0():
-    return pd.read_csv('lucas0_train.csv')
+    return pd.read_csv("lucas0_train.csv")
 
 
 def load_lucas_1():
-    data = pd.read_csv('lucas1_matlab/lucas1_test.csv')
-    results = pd.read_csv('lucas1_matlab/lucas1_train.targets', header=None)
-    data['Lung_Cancer'] = results
-    data['Lung_Cancer'] = data['Lung_Cancer'].replace(-1,0)
-    
+    data = pd.read_csv("lucas1_matlab/lucas1_test.csv")
+    results = pd.read_csv("lucas1_matlab/lucas1_train.targets", header=None)
+    data["Lung_Cancer"] = results
+    data["Lung_Cancer"] = data["Lung_Cancer"].replace(-1, 0)
+
     return data
+
 
 def LUCAS_graph():
     return 'graph[directed 1 node[id "Smoking" label "Smoking"] \
@@ -53,12 +58,12 @@ def LUCAS_graph():
 
 
 def load_nhefs():
-    csv_path = './NHEFS/nhefs.csv'
+    csv_path = "./NHEFS/nhefs.csv"
     df = pd.read_csv(csv_path)
     # df = df.fillna(0)
     # df = df.dropna()
-    df = df[df['income'].notna()]
-    df = df[df['yrdth'].notna()]
+    df = df[df["income"].notna()]
+    df = df[df["yrdth"].notna()]
     return df
 
 
@@ -73,34 +78,38 @@ data = load_nhefs()
 print(data.head())
 
 model = CausalModel(
-    data=data,
-    treatment=["income"],
-    outcome=["yrdth"],
-    graph=NHEFS_graph())
+    data=data, treatment=["income"], outcome=["yrdth"], graph=NHEFS_graph()
+)
 
 
-print('SAVING GRAPH IMAGE\n')
+print("SAVING GRAPH IMAGE\n")
 model.view_model()
 from IPython.display import Image, display
+
 display(Image(filename="causal_model.png"))
 # Identify causal effect and return target estimands
-print('\nIDENTIFYING ESTIMAND\n')
+print("\nIDENTIFYING ESTIMAND\n")
 identified_estimand = model.identify_effect()
 print(identified_estimand)
 
-print('\n ESTIMATING')
-dml_estimate = model.estimate_effect(identified_estimand,
-                                    method_name= "backdoor.econml.dml.DML",
-                                    control_value=0,
-                                    treatment_value=1,
-                                    target_units="ate",
-                                    confidence_intervals=False,
-                                    method_params={"init_params": {'model_y': GradientBoostingRegressor(),
-                                                                'model_t': GradientBoostingRegressor(),
-                                                                "model_final": LassoCV(fit_intercept=False),
-                                                                'featurizer': PolynomialFeatures(degree=1, include_bias=False)},
-                                                "fit_params": {}}
-                                    )
+print("\n ESTIMATING")
+dml_estimate = model.estimate_effect(
+    identified_estimand,
+    method_name="backdoor.econml.dml.DML",
+    control_value=0,
+    treatment_value=1,
+    target_units="ate",
+    confidence_intervals=False,
+    method_params={
+        "init_params": {
+            "model_y": GradientBoostingRegressor(),
+            "model_t": GradientBoostingRegressor(),
+            "model_final": LassoCV(fit_intercept=False),
+            "featurizer": PolynomialFeatures(degree=1, include_bias=False),
+        },
+        "fit_params": {},
+    },
+)
 
 print(round(dml_estimate.value, 3))
 
