@@ -9,14 +9,14 @@ repos:
     rev: 3.9.0
     hooks:
       - id: flake8
-        exclude: ^.*/?semeval_prepro\.py
+        exclude: ^.*/?dowhy.\/
 
   - repo: https://github.com/timothycrosley/isort
     rev: 5.7.0
     hooks:
       - id: isort
         additional_dependencies: [toml]
-        exclude: ^.*/?dowhy\.py$
+        exclude: ^.*/?setup\.py$
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.4.0
