@@ -424,68 +424,44 @@ E D
       </script>
    </div>
    <script>
-      function computeCausalEffect(g, isAutomatic) {
-         var GMLgraph = GraphParser.parseGMLGraph(g.vertices, g.edges);
+      function getIdentificationOptions(graph) {
+         var g = GraphParser.parseGMLGraph(graph.vertices, graph.edges);
          var treatment = []
          var outcome = []
-         var adjusted = []
-         for (vertex in g.vertices['kv']) {
-            if(g.isSource(vertex)){
+         for (vertex in graph.vertices['kv']) {
+            if(graph.isSource(vertex)){
                treatment.push(vertex);
             }
-            if(g.isTarget(vertex)){
+            if(graph.isTarget(vertex)){
                outcome.push(vertex);
             }
-            if(g.isAdjustedNode(vertex)){
-               adjusted.push(vertex);
-            }
          }
-
-         if(isAutomatic){
-            printEstimands(GMLgraph, treatment, outcome);
-         }
-         else{
-            showCausalEffect(GMLgraph, treatment, outcome, adjusted);
-         }
+         identificationOptions(g, treatment, outcome, printIdentificationMethods);
       }
-      
-      function printEstimands(g, treatment, outcome){
-         $.ajax({url: '/retrieve-estimands', 
-               type:'POST',
-               data: {
-                  'graph': g,
-                  'treatment': treatment.toString(),
-                  'outcome': outcome.toString(),
-               },
-                  success: function(response){
-                     var estimands_dict = JSON.parse(response);
-                     var inputOptions = {};
-                     for(var k in estimands_dict){
-                        var related_variables;
-                        if('related_variables' in estimands_dict[k] && estimands_dict[k]['related_variables'].length == 0){
-                           related_variables = 'no variable'
-                        }else{
-                           related_variables = estimands_dict[k]['related_variables']
-                        }
-                        inputOptions[k] =  k + ': ' + related_variables;
-                     }
-                     (async () => {
-                        title = 'Please, choose the identification method and related variables you would wish to use';
-                        subtitle = 'Identified methods';
-                        const {value: estimand } = await optionsPrompt(title, subtitle, inputOptions);
-                        if(estimand){
-                           estimationMethods(estimand, printEstimationMethods);                       
-                        }
-                        else{
-                           errorPrompt('No selected estimand found. Please, try again');
-                        }
-                     })();
-                  },
-                  error: function(req, status, error){
-                     errorPrompt(req.responseText);
-                  }
 
-               });
+      function printIdentificationMethods(response){
+         (async () => {
+            var estimands_dict = JSON.parse(response);
+            var inputOptions = {};
+            for(var k in estimands_dict){
+               var related_variables;
+               if('related_variables' in estimands_dict[k] && estimands_dict[k]['related_variables'].length == 0){
+                  related_variables = 'no variable'
+               }else{
+                  related_variables = estimands_dict[k]['related_variables']
+               }
+               inputOptions[k] =  k + ': ' + related_variables;
+            }
+            title = 'Please, choose the identification method and related variables you would wish to use';
+            subtitle = 'Identified methods';
+            const {value: estimand } = await optionsPrompt(title, subtitle, inputOptions);
+            if(estimand){
+               estimationMethods(estimand, printEstimationMethods);                       
+            }
+            else{
+               errorPrompt('No selected identification method. Please, try again');
+            }
+         })();
       }
 
       function printEstimationMethods(estimand, estimation_options){
@@ -502,29 +478,11 @@ E D
          })();         
       }
 
-      function showCausalEffect(g, treatment, outcome, adjusted){
-         $.ajax({url: '/compute-effect-from-graph', 
-            type:'POST',
-            data: {
-                     'graph': g,
-                     'treatment': treatment.toString(),
-                     'outcome': outcome.toString(),
-                     'adjusted': JSON.stringify(adjusted),
-                  },
-               success: function(response){
-                  simpleCausalEffectPrompt(response['treatment'],response['outcome'],response['effect']);
-               },
-               error: function(req, status, error){
-                  errorPrompt(req.responseText);
-               }
-         });
-      }
 
    </script>
    <h3 onclick="displayToggle('compute')"><img src="{{url_for('static', filename='images/arrow-down.png')}}" alt="" id="a_compute"> Compute causal effect</h3>
    <div id="compute" style="display:block">
-      <button type="button" id="compute_causal_effect_manually" onclick="computeCausalEffect(Model.dag, false);">Compute from graph</button>
-      <button type="button" id="compute_causal_effect_automatically" onclick="computeCausalEffect(Model.dag, true);">Compute with options</button>
+       <button type="button" id="compute_causal_effect_automatically" onclick="getIdentificationOptions(Model.dag);">Compute ATE</button>
    </div>
 
 </div>

@@ -1,5 +1,3 @@
-import json
-
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import LassoCV
 from sklearn.preprocessing import PolynomialFeatures
@@ -10,15 +8,11 @@ CANNOT_FIND_SUITABLE_ESTIMAND = 'Sorry, we can not find a suitable estimand for 
 EMPTY_CSV = "No data found on the uploaded csv. Please, select another."
 PARSE_ERROR_CSV = "Error parsing the csv. Please, select another."
 CSV_ERROR = "Something went wrong with the csv loading. Please, select another."
-PROBLEM_CAUSAL_MODEL_GRAPH = "Something went wrong when estimating the Causal Model. Please, make sure that all nodes in the graph have a corresponding csv column, that the graph is directed and acyclic and that treatment and outcome variables are correctly marked on the graph."
-PROBLEM_CAUSAL_MODEL_MANUAL = "Something went wrong when estimating the Causal Model."
+PROBLEM_CAUSAL_MODEL_MANUAL = "Something went wrong when estimating the Causal Model. Please, make sure that all nodes in the graph have a corresponding csv column, that the graph is directed and acyclic and that treatment and outcome variables are correctly marked on the graph."
 CANNOT_FIND_SUITABLE_ESTIMATOR = "Something went wrong with the computed estimator"
 
 
-def compute_estimands(data, graph, treatment, outcome):
-
-    # data = data[data[treatment].notna()]
-    # data = data[data[outcome].notna()]
+def compute_identification_options(data, graph, treatment, outcome):
     data = data.dropna()
     data[treatment].apply(float)
     data[outcome].apply(float)
@@ -53,41 +47,8 @@ def compute_estimands(data, graph, treatment, outcome):
     return result, model, identified_estimand
 
 
-def retrieveCorrespondingEstimand(identified_estimand, treatment, outcome, adjusted):
-    estimand_name = None
-    adjusted = json.loads(adjusted)
-    backdoor_dict = identified_estimand.backdoor_variables
-    for key in backdoor_dict.keys():
-        if backdoor_dict[key] == adjusted:
-            estimand_name = key
-    return estimand_name
-
-
-def estimate_with_variables(data, graph, treatment, outcome, adjusted):
-    try:
-        model = CausalModel(
-            data=data,
-            treatment=treatment.split(","),
-            outcome=outcome.split(","),
-            graph=graph,
-            proceed_when_unidentifiable=True,
-        )
-        identified_estimand = model.identify_effect()
-        estimand_name = retrieveCorrespondingEstimand(
-            identified_estimand, treatment, outcome, adjusted
-        )
-        if estimand_name is None:
-            raise Exception(CANNOT_FIND_SUITABLE_ESTIMAND)
-        causal_effect = estimate_effect_with_estimand_and_estimator(
-            model, identified_estimand, estimand_name, "econml.dml.DML", True
-        )
-        return causal_effect
-    except Exception as e:
-        raise Exception("{}".format(e))
-
-
 def estimate_effect_with_estimand_and_estimator(
-    model, identified_estimand, estimand_name, estimand_method, from_graph=False
+    model, identified_estimand, estimand_name, estimand_method
 ):
 
     try:
@@ -145,10 +106,7 @@ def estimate_effect_with_estimand_and_estimator(
         return estimate
 
     except Exception as e:
-        if from_graph:
-            exception_msg = PROBLEM_CAUSAL_MODEL_GRAPH
-        else:
-            exception_msg = PROBLEM_CAUSAL_MODEL_MANUAL
+        exception_msg = PROBLEM_CAUSAL_MODEL_MANUAL
         raise Exception("{}".format(exception_msg + str(e)))
 
 
