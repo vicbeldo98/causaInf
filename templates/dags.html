@@ -484,14 +484,14 @@ E D
 
       function printEstimationMethods(estimand, estimation_options){
          (async () => {
-            title = 'Please, choose the estimation method you would wish to use';
-            subtitle = 'Available estimation methods';
+            title = 'Estimation';
+            subtitle = 'Please, choose a method in order to estimate the ATE';
             const {value: estimation_method } = await optionsPrompt(title, subtitle, estimation_options);
             if(estimation_method){
                causalEffect(estimand, estimation_method);        
             }
             else{
-               errorPrompt('No selected estimation method found. Please, try again');
+               errorPrompt('No selected estimation method. Please, try again');
             }
          })();         
       }

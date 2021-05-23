@@ -150,7 +150,8 @@ def refuting_tests(model, identified_estimand, estimate):
     )
 
     return {
-        "random-cause": str(res_random),
-        "placebo": str(res_placebo),
-        "subset-refuter": str(res_subset),
+        "<br>Random common cause</br>": [str(round(res_random.new_effect, 3)), 'Inserts a random common cause and recomputes the causal effect. The estimated effect should be close to the original effect.'],
+        "<br>Placebo treatment</br>": [str(round(res_placebo.new_effect, 3)), 'Substitutes the treatment values with values ​​of a random independent variable. The estimated effect should be close to zero.'],
+        "<br>Subset validation</br>": [str(round(res_subset.new_effect, 3)), 'Replaces the given dataset with a randomly selected subset. The estimated effect should be close to the original effect.'],
+        "original": str(round(res_random.estimated_effect, 3))
     }
