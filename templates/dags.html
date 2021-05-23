@@ -450,13 +450,31 @@ E D
                }else{
                   related_variables = estimands_dict[k]['related_variables']
                }
-               inputOptions[k] =  k + ': ' + related_variables;
+               if(k=='backdoor'){
+                  //pass
+               }else{
+                  if(k.startsWith ('backdoor')&&related_variables=='no variable'){
+                     inputOptions[k] = 'Do not adjust for any variable';
+                  }else if(k.startsWith ('backdoor')&&related_variables!='no variable'){
+                     inputOptions[k] = 'Adjust for variables: ' + related_variables;
+                  }else if(k.startsWith('frontdoor')){
+                     inputOptions[k] = 'Quantify causal effect through: ' + related_variables;
+                  }else{
+                     inputOptions[k] = k + ': ' + related_variables;
+                  }
+               }
             }
-            title = 'Please, choose the identification method and related variables you would wish to use';
-            subtitle = 'Identified methods';
-            const {value: estimand } = await optionsPrompt(title, subtitle, inputOptions);
-            if(estimand){
-               estimationMethods(estimand, printEstimationMethods);                       
+            var collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+            var ids = Object.keys(inputOptions).sort(collator.compare);
+            orderedMap = {};
+            for(id in ids){
+               orderedMap[ids[id]]= inputOptions[ids[id]];
+            }
+            title = 'Identification';
+            subtitle = 'Please, choose a method in order to identify the ATE';
+            const {value: identification_method } = await optionsPrompt(title, subtitle, orderedMap);
+            if(identification_method){
+               estimationMethods(identification_method, printEstimationMethods);                       
             }
             else{
                errorPrompt('No selected identification method. Please, try again');

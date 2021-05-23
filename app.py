@@ -35,7 +35,7 @@ def retrieve_estimands():
         request.form["treatment"],
         request.form["outcome"],
     )
-    return json.dumps(dict(identification_options), default=str)
+    return json.dumps(identification_options, default=str)
 
 
 @app.route("/compute-effect-with-estimand-and-estimator", methods=["POST"])
