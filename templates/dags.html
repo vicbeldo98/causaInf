@@ -442,6 +442,7 @@ E D
       function printIdentificationMethods(response){
          (async () => {
             var estimands_dict = JSON.parse(response);
+            console.log(estimands_dict);
             var inputOptions = {};
             for(var k in estimands_dict){
                var related_variables;

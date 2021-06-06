@@ -22,6 +22,9 @@ def compute_identification_options(data, graph, treatment, outcome):
     else:
         print("NON-BINARY TREATMENT...")
 
+
+    print('****************************')
+    print(graph)
     model = CausalModel(
         data=data,
         treatment=treatment,
@@ -30,6 +33,8 @@ def compute_identification_options(data, graph, treatment, outcome):
         proceed_when_unidentifiable=True,
     )
     identified_estimand = model.identify_effect()
+    print('************************************')
+    print(dict(identified_estimand.estimands.items()))
     result = dict(identified_estimand.estimands.items())
     backdoor_dict = identified_estimand.backdoor_variables
     frontdoor_dict = identified_estimand.get_frontdoor_variables()
@@ -44,6 +49,8 @@ def compute_identification_options(data, graph, treatment, outcome):
         result["iv"]["related_variables"] = iv_estimands
     for b in backdoor_dict.keys():
         result[b]["related_variables"] = backdoor_dict[b]
+    print('***************************************')
+    print(result)
     return result, model, identified_estimand
 
 
@@ -128,13 +135,13 @@ def refuting_tests(model, identified_estimand, estimate):
         identified_estimand, estimate, method_name="random_common_cause"
     )
 
-    """Adding an unobserved common cause variable"""
-    """res_unobserved = model.refute_estimate(identified_estimand, estimate, method_name="add_unobserved_common_cause",
+    """Adding unobserver common cause"""
+    res_unobserved = model.refute_estimate(identified_estimand, estimate, method_name="add_unobserved_common_cause",
                                            confounders_effect_on_treatment="binary_flip", confounders_effect_on_outcome="linear",
-                                           effect_strength_on_treatment=0.01, effect_strength_on_outcome=0.02)"""
+                                           effect_strength_on_treatment=0.01, effect_strength_on_outcome=0.02)
 
     """Replacing treatment with a random (placebo) variable"""
-    res_placebo = model.refute_estimate(
+    res_treatment_placebo = model.refute_estimate(
         identified_estimand,
         estimate,
         method_name="placebo_treatment_refuter",
@@ -149,9 +156,19 @@ def refuting_tests(model, identified_estimand, estimate):
         subset_fraction=0.9,
     )
 
+    """Bootstrap"""
+    res_bootstrap = model.refute_estimate(
+        identified_estimand,
+        estimate,
+        method_name="dummy_outcome_refuter",
+        placebo_type="permute",
+    )
+
     return {
         "<br>Random common cause</br>": [str(round(res_random.new_effect, 3)), 'Inserts a random common cause and recomputes the causal effect. The estimated effect should be close to the original effect.'],
-        "<br>Placebo treatment</br>": [str(round(res_placebo.new_effect, 3)), 'Substitutes the treatment values with values ​​of a random independent variable. The estimated effect should be close to zero.'],
+        "<br>Add unobserved common cause</br>": [str(round(int(res_unobserved.new_effect), 3)), 'Inserts an unobserved random common cause and recomputes the causal effect. The estimated effect should be close to the original effect.'],
+        "<br>Placebo treatment</br>": [str(round(res_treatment_placebo.new_effect, 3)), 'Substitutes the treatment values with values ​​of a random independent variable. The estimated effect should be close to zero.'],
         "<br>Subset validation</br>": [str(round(res_subset.new_effect, 3)), 'Replaces the given dataset with a randomly selected subset. The estimated effect should be close to the original effect.'],
+        "<br>Bootstrap Validation</br>": [str(round(res_bootstrap[0].new_effect, 3)), 'Replaces the given dataset with a randomly selected samples of the dataset. The estimated effect should be close to the original effect.'],
         "original": str(round(res_random.estimated_effect, 3))
     }

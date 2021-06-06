@@ -13,7 +13,7 @@ from dowhy import CausalModel
 
 
 def load_lucas_0():
-    return pd.read_csv("LUCAS-EXAMPLE/lucas_little.csv")
+    return pd.read_csv("LUCAS-EXAMPLE/lucas.csv")
 
 
 def load_lucas_1():
@@ -26,21 +26,68 @@ def load_lucas_1():
 
 data = load_lucas_0()
 
+graphworking = 'graph[directed 1 node[id "Ansiedad" label "Ansiedad"] \
+    node[id "Cancer_Pulmon" label "Cancer_Pulmon"] \
+    node[id "Fumar" label "Fumar"] \
+    node[id "Alergia" label "Alergia"] \
+    node[id "Toser" label "Toser"] \
+    node[id "Fatiga" label "Fatiga"] \
+    node[id "Genetica" label "Genetica"] \
+    node[id "Dedos_Amarillos" label "Dedos_Amarillos"] \
+    node[id "Nacido_Dia_Par" label "Nacido_Dia_Par"] \
+    edge[source "Ansiedad" target "Fumar"] \
+    edge[source "Fumar" target "Cancer_Pulmon"] \
+    edge[source "Fumar" target "Dedos_Amarillos"] \
+    edge[source "Cancer_Pulmon" target "Toser"] \
+    edge[source "Cancer_Pulmon" target "Fatiga"] \
+    edge[source "Toser" target "Fatiga"] \
+    edge[source "Alergia" target "Toser"] \
+    edge[source "Genetica" target "Cancer_Pulmon"]]'
+
+graphnotworking = 'graph[directed 1 node[id "Alergia" label "Alergia"] \
+    node[id "Ansiedad" label "Ansiedad"] \
+    node[id "Cancer_Pulmon" label "Cancer_Pulmon"] \
+    node[id "Dedos_Amarillos" label "Dedos_Amarillos"] \
+    node[id "Deficit_Atencion" label "Deficit_Atencion"] \
+    node[id "Fatiga" label "Fatiga"] \
+    node[id "Fumar" label "Fumar"] \
+    node[id "Genetica" label "Genetica"] \
+    node[id "Nacido_Dia_Par" label "Nacido_Dia_Par"] \
+    node[id "Presion_Social" label "Presion_Social"] \
+    node[id "Toser" label "Toser"] \
+    edge[source "Alergia" target "Toser"] \
+    edge[source "Ansiedad" target "Fumar"] \
+    edge[source "Cancer_Pulmon" target "Fatiga"] \
+    edge[source "Cancer_Pulmon" target "Toser"] \
+    edge[source "Fumar" target "Cancer_Pulmon"] \
+    edge[source "Fumar" target "Dedos_Amarillos"] \
+    edge[source "Genetica" target "Cancer_Pulmon"] \
+    edge[source "Genetica" target "Deficit_Atencion"] \
+    edge[source "Presion_Social" target "Fumar"] \
+    edge[source "Toser" target "Fatiga"]]'
+
+testgraph = 'graph[directed 1 node[id "A" label "A"] \
+    node[id "B" label "B"] \
+    node[id "C" label "C"] \
+    node[id "D" label "D"] \
+    edge[source "A" target "B"] \
+    edge[source "C" target "A"] \
+    edge[source "C" target "B"] \
+    edge[source "D" target "C"]]'
+
 model = CausalModel(
     data=data,
-    treatment=["E"],
-    outcome=["D"],
-    graph='graph[directed 1 node[id "E" label "E"] \
-    node[id "D" label "D"] \
-    edge[source "E" target "D"]]'
+    treatment=["Toser"],
+    outcome=["Fatiga"],
+    graph=graphnotworking
 )
 
 # Identify causal effect and return target estimands
 print("\nIDENTIFYING ESTIMAND\n")
-identified_estimand = model.identify_effect()
+identified_estimand = model.identify_effect(proceed_when_unidentifiable=True)
 print(identified_estimand)
 
-print("\n ESTIMATING")
+'''print("\n ESTIMATING")
 dml_estimate = model.estimate_effect(
     identified_estimand,
     method_name="backdoor.econml.dml.DML",
@@ -61,8 +108,17 @@ dml_estimate = model.estimate_effect(
 
 print(round(dml_estimate.value, 3))
 
-res_random = model.refute_estimate(
+"""res_random = model.refute_estimate(
     identified_estimand, dml_estimate, method_name="random_common_cause"
-)
+)"""
 
-print(res_random.new_effect)
+"""Bootstrap"""
+res_bootstrap = model.refute_estimate(
+    identified_estimand,
+    dml_estimate,
+    method_name="dummy_outcome_refuter",
+    placebo_type="permute",
+)
+print(res_bootstrap)
+print(res_bootstrap[0].new_effect)
+'''

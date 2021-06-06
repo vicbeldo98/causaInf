@@ -1,0 +1,26 @@
+dag {
+Accidente_Coche [pos="0.143,-0.231"]
+Alergia [pos="-0.622,-0.326"]
+Ansiedad [pos="-0.496,-0.617"]
+Cancer_Pulmon [pos="-0.282,-0.378"]
+Dedos_Amarillos [pos="-0.512,-0.381"]
+Deficit_Atencion [pos="0.150,-0.402"]
+Fatiga [outcome,pos="-0.141,-0.233"]
+Fumar [pos="-0.410,-0.521"]
+Genetica [pos="-0.205,-0.515"]
+Nacido_Dia_Par [pos="0.102,-0.611"]
+Presion_Grupo [pos="-0.327,-0.615"]
+Toser [exposure,pos="-0.462,-0.236"]
+Alergia -> Toser
+Ansiedad -> Fumar
+Cancer_Pulmon -> Fatiga
+Cancer_Pulmon -> Toser
+Deficit_Atencion -> Accidente_Coche
+Fatiga -> Accidente_Coche
+Fumar -> Cancer_Pulmon
+Fumar -> Dedos_Amarillos
+Genetica -> Cancer_Pulmon
+Genetica -> Deficit_Atencion
+Presion_Grupo -> Fumar
+Toser -> Fatiga
+}
