@@ -1,27 +1,27 @@
 dag {
 bb="-11.699,-7.041,8.355,5.572"
-Accidente_Coche [pos="-7.539,-0.388"]
-Alergia [pos="-0.265,-5.990"]
-Ansiedad [pos="5.873,-0.958"]
-Cancer_Pulmon [outcome,pos="-0.800,4.018"]
-Dedos_Amarillos [pos="6.684,3.183"]
-Deficit_Atencion [pos="-4.777,0.567"]
-Fatiga [pos="-1.427,-0.719"]
-Fumar [exposure,pos="3.142,0.854"]
-Genetica [pos="-1.655,1.282"]
-Nacido_Dia_Par [pos="-8.502,-2.465"]
-Presion_Social [pos="3.386,4.521"]
-Tos [pos="0.255,-3.069"]
-Alergia -> Tos
+Accidente_Coche [pos="6.265,0.714"]
+Alergia [pos="-7.042,-2.229"]
+Ansiedad [pos="-4.833,-6.309"]
+Cancer_Pulmon [outcome,pos="0.435,-2.681"]
+Dedos_Amarillos [pos="-3.151,-1.171"]
+Deficit_Atencion [pos="4.956,-2.479"]
+Fatiga [pos="2.611,0.605"]
+Fumar [exposure,pos="-3.371,-2.868"]
+Genetica [pos="3.257,-5.048"]
+Nacido_Dia_Par [pos="5.534,-6.418"]
+Presion_Grupo [pos="-1.502,-6.262"]
+Toser [pos="-2.420,0.496"]
+Alergia -> Toser
 Ansiedad -> Fumar
 Cancer_Pulmon -> Fatiga
-Cancer_Pulmon -> Tos
+Cancer_Pulmon <-> Toser
 Deficit_Atencion -> Accidente_Coche
 Fatiga -> Accidente_Coche
 Fumar -> Cancer_Pulmon
 Fumar -> Dedos_Amarillos
 Genetica -> Cancer_Pulmon
 Genetica -> Deficit_Atencion
-Presion_Social -> Fumar
-Tos -> Fatiga
+Presion_Grupo -> Fumar
+Toser -> Fatiga
 }

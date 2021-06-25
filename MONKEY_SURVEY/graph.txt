@@ -1,0 +1,21 @@
+dag {
+"Cobrar Desempleo" [pos="-0.276,-0.592"]
+"Educación" [pos="-0.466,-0.759"]
+"Enfermedad Mental" [exposure,pos="-0.497,-0.654"]
+"Género" [pos="-0.271,-0.759"]
+"Hospitalización" [pos="-0.458,-0.593"]
+"Periodo Sin Trabajar" [pos="-0.350,-0.760"]
+"Vivir Padres" [pos="-0.352,-0.594"]
+Discapacidad [pos="-0.571,-0.594"]
+Empleo [outcome,pos="-0.279,-0.650"]
+"Educación" -> "Enfermedad Mental"
+"Educación" -> "Periodo Sin Trabajar"
+"Educación" -> Empleo
+"Enfermedad Mental" -> "Hospitalización"
+"Enfermedad Mental" -> Discapacidad
+"Género" -> Empleo
+"Periodo Sin Trabajar" -> Empleo
+Discapacidad -> "Hospitalización"
+Empleo -> "Cobrar Desempleo"
+Empleo -> "Vivir Padres"
+}

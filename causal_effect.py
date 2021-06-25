@@ -14,9 +14,10 @@ CANNOT_FIND_SUITABLE_ESTIMATOR = "Something went wrong with the computed estimat
 
 def compute_identification_options(data, graph, treatment, outcome):
     import re
-    for node in re.findall(r'node\[id "(\w+)" label "\1"]', graph):
+    for node in re.findall(r'node\[id "(.*)" label "\1"]', graph):
         if node not in list(data.columns):
-            raise Exception('Node %s not found in data provided' % node)
+            print(data.columns)
+            raise Exception('Node %s not found in data provided.' % node)
     data = data.dropna()
     data[treatment].apply(float)
     data[outcome].apply(float)
@@ -34,24 +35,16 @@ def compute_identification_options(data, graph, treatment, outcome):
         proceed_when_unidentifiable=True,
     )
     identified_estimand = model.identify_effect()
-    print('************************************')
-    print(dict(identified_estimand.estimands.items()))
     result = dict(identified_estimand.estimands.items())
     backdoor_dict = identified_estimand.backdoor_variables
     frontdoor_dict = identified_estimand.get_frontdoor_variables()
-    iv_estimands = identified_estimand.get_instrumental_variables()
+    del result["iv"]
     if result["frontdoor"] is None:
         del result["frontdoor"]
     else:
         result["frontdoor"]["related_variables"] = frontdoor_dict
-    if iv_estimands == []:
-        del result["iv"]
-    else:
-        result["iv"]["related_variables"] = iv_estimands
     for b in backdoor_dict.keys():
         result[b]["related_variables"] = backdoor_dict[b]
-    print('***************************************')
-    print(result)
     return result, model, identified_estimand
 
 
@@ -99,15 +92,7 @@ def estimate_effect_with_estimand_and_estimator(
                 method_name=estimand_name + "." + estimand_method,
                 target_units="ate",
             )
-            print(estimate)
 
-        elif estimand_method == "propensity_score_weighting":
-            estimate = model.estimate_effect(
-                identified_estimand,
-                method_name=estimand_name + "." + estimand_method,
-                target_units="ate",
-                method_params={"weighting_scheme": "ips_weight"},
-            )
         else:
             raise Exception(CANNOT_FIND_SUITABLE_ESTIMATOR)
 
@@ -123,7 +108,6 @@ def compute_estimation_methods(estimand):
         "linear_regression": "Linear Regression",
         "propensity_score_stratification": "Propensity Score Stratification",
         "propensity_score_matching": "Propensity Score Matching",
-        "propensity_score_weighting": "Propensity Score Weighting",
         "econml.dml.DML": "Double Machine Learning",
     }
     return estimation_options

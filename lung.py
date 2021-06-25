@@ -13,7 +13,7 @@ from dowhy import CausalModel
 
 
 def load_lucas_0():
-    return pd.read_csv("LUCAS-EXAMPLE/lucas.csv")
+    return pd.read_csv("LUCAS-EXAMPLE/lucas_little.csv")
 
 
 def load_lucas_1():
@@ -26,25 +26,7 @@ def load_lucas_1():
 
 data = load_lucas_0()
 
-graphworking = 'graph[directed 1 node[id "Ansiedad" label "Ansiedad"] \
-    node[id "Cancer_Pulmon" label "Cancer_Pulmon"] \
-    node[id "Fumar" label "Fumar"] \
-    node[id "Alergia" label "Alergia"] \
-    node[id "Toser" label "Toser"] \
-    node[id "Fatiga" label "Fatiga"] \
-    node[id "Genetica" label "Genetica"] \
-    node[id "Dedos_Amarillos" label "Dedos_Amarillos"] \
-    node[id "Nacido_Dia_Par" label "Nacido_Dia_Par"] \
-    edge[source "Ansiedad" target "Fumar"] \
-    edge[source "Fumar" target "Cancer_Pulmon"] \
-    edge[source "Fumar" target "Dedos_Amarillos"] \
-    edge[source "Cancer_Pulmon" target "Toser"] \
-    edge[source "Cancer_Pulmon" target "Fatiga"] \
-    edge[source "Toser" target "Fatiga"] \
-    edge[source "Alergia" target "Toser"] \
-    edge[source "Genetica" target "Cancer_Pulmon"]]'
-
-graphnotworking = 'graph[directed 1 node[id "Alergia" label "Alergia"] \
+graph = 'graph[directed 1 node[id "Alergia" label "Alergia"] \
     node[id "Ansiedad" label "Ansiedad"] \
     node[id "Cancer_Pulmon" label "Cancer_Pulmon"] \
     node[id "Dedos_Amarillos" label "Dedos_Amarillos"] \
@@ -55,6 +37,7 @@ graphnotworking = 'graph[directed 1 node[id "Alergia" label "Alergia"] \
     node[id "Nacido_Dia_Par" label "Nacido_Dia_Par"] \
     node[id "Presion_Social" label "Presion_Social"] \
     node[id "Toser" label "Toser"] \
+    node[id "Accidente_Coche" label "Accidente_Coche"] \
     edge[source "Alergia" target "Toser"] \
     edge[source "Ansiedad" target "Fumar"] \
     edge[source "Cancer_Pulmon" target "Fatiga"] \
@@ -66,20 +49,20 @@ graphnotworking = 'graph[directed 1 node[id "Alergia" label "Alergia"] \
     edge[source "Presion_Social" target "Fumar"] \
     edge[source "Toser" target "Fatiga"]]'
 
-testgraph = 'graph[directed 1 node[id "A" label "A"] \
+little_graph = 'graph[directed 1 node[id "A" label "A"] \
     node[id "B" label "B"] \
     node[id "C" label "C"] \
     node[id "D" label "D"] \
     edge[source "A" target "B"] \
-    edge[source "C" target "A"] \
-    edge[source "C" target "B"] \
+    edge[source "B" target "C"] \
+    edge[source "D" target "B"] \
     edge[source "D" target "C"]]'
 
 model = CausalModel(
     data=data,
-    treatment=["Toser"],
-    outcome=["Fatiga"],
-    graph=graphnotworking
+    treatment=["A"],
+    outcome=["C"],
+    graph=little_graph
 )
 
 # Identify causal effect and return target estimands
