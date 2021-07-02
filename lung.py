@@ -8,12 +8,12 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import LassoCV
 from sklearn.preprocessing import PolynomialFeatures
 
-import dowhy
 from dowhy import CausalModel
+from dowhy.causal_refuters import CausalRefuter
 
 
 def load_lucas_0():
-    return pd.read_csv("LUCAS-EXAMPLE/lucas_little.csv")
+    return pd.read_csv("LUCAS-EXAMPLE/lucas.csv")
 
 
 def load_lucas_1():
@@ -35,7 +35,7 @@ graph = 'graph[directed 1 node[id "Alergia" label "Alergia"] \
     node[id "Fumar" label "Fumar"] \
     node[id "Genetica" label "Genetica"] \
     node[id "Nacido_Dia_Par" label "Nacido_Dia_Par"] \
-    node[id "Presion_Social" label "Presion_Social"] \
+    node[id "Presion_Grupo" label "Presion_Grupo"] \
     node[id "Toser" label "Toser"] \
     node[id "Accidente_Coche" label "Accidente_Coche"] \
     edge[source "Alergia" target "Toser"] \
@@ -46,23 +46,15 @@ graph = 'graph[directed 1 node[id "Alergia" label "Alergia"] \
     edge[source "Fumar" target "Dedos_Amarillos"] \
     edge[source "Genetica" target "Cancer_Pulmon"] \
     edge[source "Genetica" target "Deficit_Atencion"] \
-    edge[source "Presion_Social" target "Fumar"] \
+    edge[source "Presion_Grupo" target "Fumar"] \
     edge[source "Toser" target "Fatiga"]]'
 
-little_graph = 'graph[directed 1 node[id "A" label "A"] \
-    node[id "B" label "B"] \
-    node[id "C" label "C"] \
-    node[id "D" label "D"] \
-    edge[source "A" target "B"] \
-    edge[source "B" target "C"] \
-    edge[source "D" target "B"] \
-    edge[source "D" target "C"]]'
 
 model = CausalModel(
     data=data,
-    treatment=["A"],
-    outcome=["C"],
-    graph=little_graph
+    treatment=["Fumar"],
+    outcome=["Cancer_Pulmon"],
+    graph=graph
 )
 
 # Identify causal effect and return target estimands
@@ -70,7 +62,7 @@ print("\nIDENTIFYING ESTIMAND\n")
 identified_estimand = model.identify_effect(proceed_when_unidentifiable=True)
 print(identified_estimand)
 
-'''print("\n ESTIMATING")
+print("\n ESTIMATING")
 dml_estimate = model.estimate_effect(
     identified_estimand,
     method_name="backdoor.econml.dml.DML",
@@ -89,14 +81,12 @@ dml_estimate = model.estimate_effect(
     },
 )
 
-print(round(dml_estimate.value, 3))
+print(dml_estimate.test_stat_significance())
+print(dml_estimate.value)
 
-"""res_random = model.refute_estimate(
-    identified_estimand, dml_estimate, method_name="random_common_cause"
-)"""
-
+# print(res_random.test_significance(estimate=dml_estimate, simulations=['random_common_cause'], test_type='auto', significance_level=0.05))
 """Bootstrap"""
-res_bootstrap = model.refute_estimate(
+'''res_bootstrap = model.refute_estimate(
     identified_estimand,
     dml_estimate,
     method_name="dummy_outcome_refuter",

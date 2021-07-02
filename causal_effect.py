@@ -1,7 +1,7 @@
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import LassoCV
 from sklearn.preprocessing import PolynomialFeatures
-
+import copy
 from dowhy.causal_model import CausalModel
 
 CANNOT_FIND_SUITABLE_ESTIMAND = 'Sorry, we can not find a suitable estimand for the adjusted graph variables. To check for the available ones, click on "Compute with options".'
@@ -51,7 +51,6 @@ def compute_identification_options(data, graph, treatment, outcome):
 def estimate_effect_with_estimand_and_estimator(
     model, identified_estimand, estimand_name, estimand_method
 ):
-
     try:
         if estimand_method == "econml.dml.DML":
             estimate = model.estimate_effect(
@@ -71,6 +70,9 @@ def estimate_effect_with_estimand_and_estimator(
                     "fit_params": {},
                 },
             )
+            real_estimate = copy.deepcopy(estimate)
+            p_value = estimate.test_stat_significance()
+            return real_estimate, p_value["p_value"][1]
 
         elif estimand_method == "linear_regression":
             estimate = model.estimate_effect(
@@ -78,6 +80,8 @@ def estimate_effect_with_estimand_and_estimator(
                 target_units="ate",
                 method_name=estimand_name + "." + estimand_method,
             )
+            p_value = estimate.test_stat_significance()["p_value"][0]
+            return estimate, p_value
 
         elif estimand_method == "propensity_score_stratification":
             estimate = model.estimate_effect(
@@ -85,6 +89,10 @@ def estimate_effect_with_estimand_and_estimator(
                 method_name=estimand_name + "." + estimand_method,
                 target_units="ate",
             )
+            stratification_estimate = copy.deepcopy(estimate)
+            p_value = estimate.test_stat_significance()["p_value"][1]
+            print(p_value)
+            return stratification_estimate, p_value
 
         elif estimand_method == "propensity_score_matching":
             estimate = model.estimate_effect(
@@ -92,11 +100,12 @@ def estimate_effect_with_estimand_and_estimator(
                 method_name=estimand_name + "." + estimand_method,
                 target_units="ate",
             )
+            matching_estimate = copy.deepcopy(estimate)
+            p_value = estimate.test_stat_significance()["p_value"]
+            return matching_estimate, p_value
 
         else:
             raise Exception(CANNOT_FIND_SUITABLE_ESTIMATOR)
-
-        return estimate
 
     except Exception as e:
         exception_msg = PROBLEM_CAUSAL_MODEL_MANUAL
@@ -113,7 +122,7 @@ def compute_estimation_methods(estimand):
     return estimation_options
 
 
-def refuting_tests(model, identified_estimand, estimate):
+def refuting_tests(model, identified_estimand, estimate, p_value):
 
     """Adding a random common cause variable"""
     res_random = model.refute_estimate(
@@ -148,5 +157,6 @@ def refuting_tests(model, identified_estimand, estimate):
         "<br>Placebo treatment</br>": [str(round(res_treatment_placebo.new_effect, 3)), 'Substitutes the treatment values with values ​​of a random independent variable. The estimated effect should be close to zero.'],
         "<br>Subset validation</br>": [str(round(res_subset.new_effect, 3)), 'Replaces the given dataset with a randomly selected subset. The estimated effect should be close to the original effect.'],
         "<br>Bootstrap Validation</br>": [str(round(res_bootstrap.new_effect, 3)), 'Replaces the given dataset with a randomly selected samples of the dataset. The estimated effect should be close to the original effect.'],
-        "original": str(round(res_random.estimated_effect, 3))
+        "original": str(round(res_random.estimated_effect, 3)),
+        "p-value": str(round(p_value, 5))
     }

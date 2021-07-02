@@ -109,6 +109,8 @@ dml_estimate = model.estimate_effect(
         },
         "fit_params": {},
     },
+    test_significance=True,
+
 )
 
 print(round(dml_estimate.value, 3))

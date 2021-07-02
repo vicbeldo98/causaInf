@@ -2,7 +2,7 @@ dag {
 bb="-11.699,-7.041,8.355,5.572"
 Accidente_Coche [pos="6.265,0.714"]
 Alergia [pos="-7.042,-2.229"]
-Ansiedad [pos="-4.833,-6.309"]
+Ansiedad [pos="-4.616,-6.323"]
 Cancer_Pulmon [outcome,pos="0.435,-2.681"]
 Dedos_Amarillos [pos="-3.151,-1.171"]
 Deficit_Atencion [pos="4.956,-2.479"]
@@ -15,7 +15,7 @@ Toser [pos="-2.420,0.496"]
 Alergia -> Toser
 Ansiedad -> Fumar
 Cancer_Pulmon -> Fatiga
-Cancer_Pulmon <-> Toser
+Cancer_Pulmon -> Toser
 Deficit_Atencion -> Accidente_Coche
 Fatiga -> Accidente_Coche
 Fumar -> Cancer_Pulmon
@@ -25,3 +25,4 @@ Genetica -> Deficit_Atencion
 Presion_Grupo -> Fumar
 Toser -> Fatiga
 }
+

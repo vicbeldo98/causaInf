@@ -40,17 +40,17 @@ def retrieve_estimands():
 
 @app.route("/compute-effect-with-estimand-and-estimator", methods=["POST"])
 def compute_effect_with_estimand_and_estimator():
-    estimate = estimate_effect_with_estimand_and_estimator(
+    session["estimate"], session["p-value"] = estimate_effect_with_estimand_and_estimator(
         session["model"],
         session["identified_estimand"],
         request.form["estimand_name"],
         request.form["estimation_method"],
     )
-    session["estimate"] = estimate
+
     return {
         "treatment": session["treatment"],
         "outcome": session["outcome"],
-        "effect": round(estimate.value, 3),
+        "effect": round(session["estimate"].value, 3),
     }
 
 
@@ -64,7 +64,7 @@ def compute_available_estimation_methods():
 def refutation():
     return dict(
         refuting_tests(
-            session["model"], session["identified_estimand"], session["estimate"]
+            session["model"], session["identified_estimand"], session["estimate"], session['p-value']
         )
     )
 
@@ -79,9 +79,10 @@ def upload_csv():
     os.remove("user.csv")
     return "", 200
 
-@app.errorhandler(Exception)
+
+'''@app.errorhandler(Exception)
 def handle_exception(e):
-    return str(e), 500
+    return str(e), 500'''
 
 
 def check_required_variables(treatment, outcome):

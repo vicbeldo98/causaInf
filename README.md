@@ -1,12 +1,16 @@
+## Install Poetry on Windows:
+```(Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py -UseBasicParsing).Content | python -```
+
+# Install Poetry in Linux/Ubuntu:
+```pip3 install poetry```
+
 ## Tool setup and initializaation
 
 1.  Clone repository in local by executing: ```git clone https://github.com/vicbeldo98/dagitty.git```
 
 2.  Place yourself inside the dagitty folder: ```cd dagitty```
 
-3.  We are using Poetry to manage all the project dependencies. Install Poetry: ```pip3 install poetry```
-
-4.  Run ``` poetry install``` in order to resolve all the necessary requirementsfor for the tool to work. 
+4.  Run ``` poetry install``` in order to resolve all the necessary requirements for for the tool to work. 
 
 4.  Start the flask service by executing the following command: ```poetry run python3 app.py```
 
@@ -19,6 +23,4 @@
 
 2.  Upload your data by clicking on Upload csv-> Choose file.... You must select a csv file which columns names match the node names you have used in your DAG.
 
-3.  Two options from here:
-    1.  You can click on Compute with options and it will guide you through a dialog with several options
-    2.  YOu can click on Compute from graph, which will compute the causal effect of the treatment node on the outcome node using machine learning, taking into account the adjusted nodes in the graph (if possible).
+3.  You can click on Compute ATE and it will guide you through a dialog with several options

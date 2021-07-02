@@ -475,28 +475,13 @@ E D
             subtitle = 'Please, choose a method in order to identify the ATE';
             const {value: identification_method } = await optionsPrompt(title, subtitle, orderedMap);
             if(identification_method){
-               estimationMethods(identification_method, printEstimationMethods);                       
+               estimationMethods(identification_method, causalEffectPrompt);                       
             }
             else{
                errorPrompt('No selected identification method. Please, try again');
             }
          })();
       }
-
-      function printEstimationMethods(estimand, estimation_options){
-         (async () => {
-            title = 'Estimation';
-            subtitle = 'Please, choose a method in order to estimate the ATE';
-            const {value: estimation_method } = await optionsPrompt(title, subtitle, estimation_options);
-            if(estimation_method){
-               causalEffect(estimand, estimation_method);        
-            }
-            else{
-               errorPrompt('No selected estimation method. Please, try again');
-            }
-         })();         
-      }
-
 
    </script>
    <h3 onclick="displayToggle('compute')"><img src="{{url_for('static', filename='images/arrow-down.png')}}" alt="" id="a_compute"> Compute causal effect</h3>
