@@ -6,7 +6,7 @@ dag {
 "Hospitalización" [pos="-0.458,-0.593"]
 "Periodo Sin Trabajar" [pos="-0.350,-0.760"]
 "Vivir Padres" [pos="-0.352,-0.594"]
-Discapacidad [pos="-0.571,-0.594"]
+Discapacidad [pos="-0.440,-0.629"]
 Empleo [outcome,pos="-0.279,-0.650"]
 "Educación" -> "Enfermedad Mental"
 "Educación" -> "Periodo Sin Trabajar"
@@ -16,6 +16,7 @@ Empleo [outcome,pos="-0.279,-0.650"]
 "Género" -> Empleo
 "Periodo Sin Trabajar" -> Empleo
 Discapacidad -> "Hospitalización"
+Discapacidad -> Empleo
 Empleo -> "Cobrar Desempleo"
 Empleo -> "Vivir Padres"
 }

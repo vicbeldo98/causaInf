@@ -80,9 +80,9 @@ def upload_csv():
     return "", 200
 
 
-'''@app.errorhandler(Exception)
+@app.errorhandler(Exception)
 def handle_exception(e):
-    return str(e), 500'''
+    return str(e), 500
 
 
 def check_required_variables(treatment, outcome):
