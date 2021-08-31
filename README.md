@@ -1,9 +1,10 @@
 # CausaInf
 
 CausaInf is a tool that provides a way of making causal inference based on causal diagrams.
-Visual and dynamically, it tries to help enterprises and people analyze their data.
 
-This tool relies mainly on two causal inference technologies: [DAGitty](http://www.dagitty.net/) and [DoWhy](https://microsoft.github.io/dowhy/) (created and mantained by Microsoft).
+Visually and dynamically, it tries to help enterprises and people analyze their data.
+
+This tool relies mainly on two causal inference technologies: [DAGitty](http://www.dagitty.net/) and [DoWhy](https://microsoft.github.io/dowhy/).
 
 DoWhy is used under the MIT License:
 
@@ -29,7 +30,7 @@ DoWhy is used under the MIT License:
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE
 
-Basically, using the interface and functionality provided by DAGitty, we have added some functionalities (those remarked in red colour) that internally use DoWhy in order to ease the process of making causal inference.
+Basically, using the interface and functionality provided by DAGitty, we have added some features (those remarked in red colour) that internally use DoWhy in order to ease the process of making causal inference.
 
 ![CausaInf](https://user-images.githubusercontent.com/49116334/131493260-40d4aa8d-6a88-4395-a5e4-4190775a53a6.jpg)
 
