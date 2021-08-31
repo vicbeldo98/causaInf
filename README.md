@@ -1,6 +1,3 @@
-## Install Poetry on Windows:
-```(Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py -UseBasicParsing).Content | python -```
-
 # Install Poetry in Linux/Ubuntu:
 ```pip3 install poetry```
 
