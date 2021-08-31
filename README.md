@@ -11,7 +11,7 @@
 
 4.  Start the flask service by executing the following command: ```poetry run python3 app.py```
 
-5. Go to (localhost:5000)[http://localhost:5000/] and you should be able to see the new DAGitty version!
+5. Go to [localhost:5000](http://localhost:5000/) and you should be able to see the new DAGitty version!
 
 
 ## Tool usage
